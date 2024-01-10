@@ -1,0 +1,6 @@
+<tool name="py2-law" version="0.1.3-ljfedo">
+  <client>
+    <environment name="PY2_LAW_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-law/0.1.3-ljfedo"/>
+  </client>
+  <runtime name="PATH" value="$PY2_LAW_BASE/bin" type="path"/>
+</tool>

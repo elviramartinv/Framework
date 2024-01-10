@@ -1,0 +1,4 @@
+<tool name="tensorflow-runtime" version="2.4.1-ljfedo">
+  <lib name="cpu_function_runtime"/>
+  <use name="tensorflow"/>
+</tool>

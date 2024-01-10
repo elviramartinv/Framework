@@ -1,0 +1,23 @@
+{
+  "EXPORT": {
+    "LIB": [
+      "1"
+    ]
+  },
+  "FLAGS": {
+    "ADD_SUBDIR": [
+      "1"
+    ],
+    "LDFLAGS": [
+      "-rdynamic"
+    ]
+  },
+  "NAME": "TauAnalysisSVfitTF",
+  "USE": [
+    "CondFormats/JetMETObjects",
+    "DataFormats/TauReco",
+    "FWCore/ParameterSet",
+    "root",
+    "roofit"
+  ]
+}

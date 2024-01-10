@@ -1,0 +1,4 @@
+<tool name="tensorflow-runtime" version="2.6.4-fac3c8fd2f0ebd70304e7bea02b4748c">
+  <lib name="cpu_function_runtime"/>
+  <use name="tensorflow"/>
+</tool>

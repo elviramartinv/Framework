@@ -1,0 +1,6 @@
+<tool name="py2-pytest" version="4.6.11-ljfedo2">
+  <client>
+    <environment name="PY2_PYTEST_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-pytest/4.6.11-ljfedo2"/>
+  </client>
+  <runtime name="PATH" value="$PY2_PYTEST_BASE/bin" type="path"/>
+</tool>

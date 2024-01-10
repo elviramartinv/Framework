@@ -1,0 +1,5 @@
+<tool name="geant4" version="10.7.2-5b058ffdfbd6c0d5526bbf670ffd2537">
+  <info url="http://geant4.web.cern.ch/geant4/"/>
+  <use name="geant4core"/>
+  <use name="geant4vis"/>
+</tool>

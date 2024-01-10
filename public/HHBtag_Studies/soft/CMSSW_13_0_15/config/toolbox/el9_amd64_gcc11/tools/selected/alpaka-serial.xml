@@ -1,0 +1,5 @@
+<tool name="alpaka-serial" version="develop-20230621-4393fe639887c67e9ce03fadc0c689af">
+  <use name="alpaka"/>
+  <flags CXXFLAGS="-DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED"/>
+  <flags GENREFLEX_CPPFLAGS="-DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED"/>
+</tool>

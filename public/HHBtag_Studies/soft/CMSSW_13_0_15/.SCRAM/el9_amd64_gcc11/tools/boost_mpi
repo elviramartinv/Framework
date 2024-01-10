@@ -1,0 +1,11 @@
+{
+  "LIB": [
+    "boost_mpi"
+  ],
+  "TOOLNAME": "boost_mpi",
+  "TOOLVERSION": "1.80.0-f76596f4b83666ac3468f34a5f342677",
+  "USE": [
+    "boost",
+    "boost_serialization"
+  ]
+}

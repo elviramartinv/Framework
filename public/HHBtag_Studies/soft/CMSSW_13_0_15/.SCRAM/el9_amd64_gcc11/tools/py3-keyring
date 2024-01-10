@@ -1,0 +1,13 @@
+{
+  "PY3_KEYRING_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-keyring/23.9.1-55c64cb30b4c7b33365608e8f8a25969",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-keyring/23.9.1-55c64cb30b4c7b33365608e8f8a25969/bin"
+    ]
+  },
+  "TOOLNAME": "py3-keyring",
+  "TOOLVERSION": "23.9.1-55c64cb30b4c7b33365608e8f8a25969",
+  "VARIABLES": [
+    "PY3_KEYRING_BASE"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "EXPORT": {
+    "LIB": [
+      "1"
+    ]
+  },
+  "NAME": "HHKinFit2HHKinFit2",
+  "USE": [
+    "root",
+    "histfactory"
+  ]
+}

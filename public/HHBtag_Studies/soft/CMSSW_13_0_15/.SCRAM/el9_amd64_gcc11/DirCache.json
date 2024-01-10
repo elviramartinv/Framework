@@ -1,0 +1,380 @@
+{
+  "ADDEDBF": {},
+  "ADDEDDIR": {},
+  "BFCACHE": {
+    "config/BuildFile.xml": 1703251776.0,
+    "src/HHKinFit2/HHKinFit2/BuildFile.xml": 1702374926.0,
+    "src/HHTools/HHbtag/BuildFile.xml": 1702374926.0,
+    "src/HHTools/HHbtag/bin/BuildFile.xml": 1702374926.0,
+    "src/TauAnalysis/ClassicSVfit/BuildFile.xml": 1702374913.0,
+    "src/TauAnalysis/ClassicSVfit/bin/BuildFile.xml": 1702374913.0,
+    "src/TauAnalysis/SVfitTF/BuildFile.xml": 1702374927.0
+  },
+  "CLASSDATA": [
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "BigProducts",
+        "SubSystem"
+      ],
+      [
+        "",
+        "BigProduct"
+      ],
+      [
+        "",
+        "donothing"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "scripts",
+        "scripts"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "Documentation",
+        "Documentation"
+      ],
+      [
+        "",
+        "doc"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "src",
+        "library"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "bin",
+        "binary"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "test",
+        "test"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "plugins",
+        "plugins"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "python",
+        "python"
+      ]
+    ],
+    [
+      [
+        "",
+        "Project"
+      ],
+      [
+        "LCG",
+        "SubSystem"
+      ],
+      [
+        "",
+        "Package"
+      ],
+      [
+        "tests",
+        "binary"
+      ]
+    ]
+  ],
+  "CLASSMAP": {
+    "config": [
+      "Project",
+      "config",
+      ""
+    ],
+    "src": [
+      "Project",
+      "src",
+      ""
+    ],
+    "src/Framework": [
+      "SubSystem",
+      "src/Framework",
+      ""
+    ],
+    "src/Framework/NanoProd": [
+      "Package",
+      "src/Framework/NanoProd",
+      ""
+    ],
+    "src/Framework/NanoProd/python": [
+      "python",
+      "src/Framework/NanoProd/python",
+      ""
+    ],
+    "src/HHKinFit2": [
+      "SubSystem",
+      "src/HHKinFit2",
+      ""
+    ],
+    "src/HHKinFit2/HHKinFit2": [
+      "Package",
+      "src/HHKinFit2/HHKinFit2",
+      ""
+    ],
+    "src/HHKinFit2/HHKinFit2/examples": [
+      "Package",
+      "src/HHKinFit2/HHKinFit2",
+      "examples"
+    ],
+    "src/HHKinFit2/HHKinFit2/interface": [
+      "Package",
+      "src/HHKinFit2/HHKinFit2",
+      "interface"
+    ],
+    "src/HHKinFit2/HHKinFit2/src": [
+      "library",
+      "src/HHKinFit2/HHKinFit2/src",
+      ""
+    ],
+    "src/HHTools": [
+      "SubSystem",
+      "src/HHTools",
+      ""
+    ],
+    "src/HHTools/HHbtag": [
+      "Package",
+      "src/HHTools/HHbtag",
+      ""
+    ],
+    "src/HHTools/HHbtag/bin": [
+      "binary",
+      "src/HHTools/HHbtag/bin",
+      ""
+    ],
+    "src/HHTools/HHbtag/interface": [
+      "Package",
+      "src/HHTools/HHbtag",
+      "interface"
+    ],
+    "src/HHTools/HHbtag/models": [
+      "Package",
+      "src/HHTools/HHbtag",
+      "models"
+    ],
+    "src/HHTools/HHbtag/src": [
+      "library",
+      "src/HHTools/HHbtag/src",
+      ""
+    ],
+    "src/TauAnalysis": [
+      "SubSystem",
+      "src/TauAnalysis",
+      ""
+    ],
+    "src/TauAnalysis/ClassicSVfit": [
+      "Package",
+      "src/TauAnalysis/ClassicSVfit",
+      ""
+    ],
+    "src/TauAnalysis/ClassicSVfit/bin": [
+      "binary",
+      "src/TauAnalysis/ClassicSVfit/bin",
+      ""
+    ],
+    "src/TauAnalysis/ClassicSVfit/interface": [
+      "Package",
+      "src/TauAnalysis/ClassicSVfit",
+      "interface"
+    ],
+    "src/TauAnalysis/ClassicSVfit/src": [
+      "library",
+      "src/TauAnalysis/ClassicSVfit/src",
+      ""
+    ],
+    "src/TauAnalysis/SVfitTF": [
+      "Package",
+      "src/TauAnalysis/SVfitTF",
+      ""
+    ],
+    "src/TauAnalysis/SVfitTF/data": [
+      "Package",
+      "src/TauAnalysis/SVfitTF",
+      "data"
+    ],
+    "src/TauAnalysis/SVfitTF/interface": [
+      "Package",
+      "src/TauAnalysis/SVfitTF",
+      "interface"
+    ],
+    "src/TauAnalysis/SVfitTF/src": [
+      "library",
+      "src/TauAnalysis/SVfitTF/src",
+      ""
+    ]
+  },
+  "DIRCACHE": {
+    "config": [
+      1703252661.0
+    ],
+    "src": [
+      1703251776.0,
+      "src/Framework",
+      "src/HHTools",
+      "src/TauAnalysis",
+      "src/HHKinFit2"
+    ],
+    "src/Framework": [
+      1703251776.0,
+      "src/Framework/NanoProd"
+    ],
+    "src/Framework/NanoProd": [
+      1703251776.0,
+      "src/Framework/NanoProd/python"
+    ],
+    "src/Framework/NanoProd/python": [
+      1702375137.0
+    ],
+    "src/HHKinFit2": [
+      1703251776.0,
+      "src/HHKinFit2/HHKinFit2"
+    ],
+    "src/HHKinFit2/HHKinFit2": [
+      1702374926.0,
+      "src/HHKinFit2/HHKinFit2/src"
+    ],
+    "src/HHKinFit2/HHKinFit2/src": [
+      1702374926.0
+    ],
+    "src/HHTools": [
+      1703251776.0,
+      "src/HHTools/HHbtag"
+    ],
+    "src/HHTools/HHbtag": [
+      1703242937.0,
+      "src/HHTools/HHbtag/bin",
+      "src/HHTools/HHbtag/src"
+    ],
+    "src/HHTools/HHbtag/bin": [
+      1702477908.0
+    ],
+    "src/HHTools/HHbtag/src": [
+      1702481151.0
+    ],
+    "src/TauAnalysis": [
+      1703251776.0,
+      "src/TauAnalysis/ClassicSVfit",
+      "src/TauAnalysis/SVfitTF"
+    ],
+    "src/TauAnalysis/ClassicSVfit": [
+      1702374913.0,
+      "src/TauAnalysis/ClassicSVfit/bin",
+      "src/TauAnalysis/ClassicSVfit/src"
+    ],
+    "src/TauAnalysis/ClassicSVfit/bin": [
+      1702374913.0
+    ],
+    "src/TauAnalysis/ClassicSVfit/src": [
+      1702374913.0
+    ],
+    "src/TauAnalysis/SVfitTF": [
+      1702374928.0,
+      "src/TauAnalysis/SVfitTF/src"
+    ],
+    "src/TauAnalysis/SVfitTF/src": [
+      1702374928.0
+    ]
+  },
+  "PACKMAP": {
+    "src/HHKinFit2/HHKinFit2": "src/HHKinFit2/HHKinFit2/src",
+    "src/HHTools/HHbtag": "src/HHTools/HHbtag/src",
+    "src/TauAnalysis/ClassicSVfit": "src/TauAnalysis/ClassicSVfit/src",
+    "src/TauAnalysis/SVfitTF": "src/TauAnalysis/SVfitTF/src"
+  },
+  "REMOVEDBF": {},
+  "REMOVEDDIR": {}
+}

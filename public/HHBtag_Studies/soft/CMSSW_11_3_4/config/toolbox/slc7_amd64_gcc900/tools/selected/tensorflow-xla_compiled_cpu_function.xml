@@ -1,0 +1,4 @@
+<tool name="tensorflow-xla_compiled_cpu_function" version="2.4.1-ljfedo">
+  <lib name="xla_compiled_cpu_function"/>
+  <use name="tensorflow"/>
+</tool>

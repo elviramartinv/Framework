@@ -1,0 +1,10 @@
+{
+  "LIB": [
+    "ROOTVecOps"
+  ],
+  "TOOLNAME": "rootvecops",
+  "TOOLVERSION": "6.26.11-a931eb5f206ceca777958cf9f4442b77",
+  "USE": [
+    "rootcore"
+  ]
+}

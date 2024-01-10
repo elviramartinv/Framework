@@ -1,0 +1,11 @@
+<tool name="python3" version="3.8.2-bcolbf">
+  <lib name="python3.8"/>
+  <client>
+    <environment name="PYTHON3_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/python3/3.8.2-bcolbf"/>
+    <environment name="LIBDIR" default="$PYTHON3_BASE/lib"/>
+    <environment name="INCLUDE" default="$PYTHON3_BASE/include/python3.8"/>
+    <environment name="PYTHON3_COMPILE" default="$PYTHON3_BASE/lib/python3.8/compileall.py"/>
+  </client>
+  <runtime name="PATH" value="$PYTHON3_BASE/bin" type="path"/>
+  <use name="sockets"/>
+</tool>

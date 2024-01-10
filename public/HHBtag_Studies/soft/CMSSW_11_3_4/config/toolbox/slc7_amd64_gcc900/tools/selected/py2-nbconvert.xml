@@ -1,0 +1,6 @@
+<tool name="py2-nbconvert" version="5.6.1-ljfedo3">
+  <client>
+    <environment name="PY2_NBCONVERT_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-nbconvert/5.6.1-ljfedo3"/>
+  </client>
+  <runtime name="PATH" value="$PY2_NBCONVERT_BASE/bin" type="path"/>
+</tool>

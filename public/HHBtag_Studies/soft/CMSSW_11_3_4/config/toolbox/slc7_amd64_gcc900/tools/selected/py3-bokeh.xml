@@ -1,0 +1,6 @@
+<tool name="py3-bokeh" version="2.3.0">
+  <client>
+    <environment name="PY3_BOKEH_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py3-bokeh/2.3.0"/>
+  </client>
+  <runtime name="PATH" value="$PY3_BOKEH_BASE/bin" type="path"/>
+</tool>

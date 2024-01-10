@@ -1,0 +1,8 @@
+tmp/slc7_amd64_gcc900/src/HiggsAnalysis/CombinedLimit/bin/PerfTest/PerfTest.cpp.o: \
+ src/HiggsAnalysis/CombinedLimit/bin/PerfTest.cpp \
+ src/HiggsAnalysis/CombinedLimit/interface/CachingNLL.h \
+ src/HiggsAnalysis/CombinedLimit/interface/SimpleGaussianConstraint.h \
+ src/HiggsAnalysis/CombinedLimit/interface/SimplePoissonConstraint.h \
+ src/HiggsAnalysis/CombinedLimit/interface/SimpleConstraintGroup.h \
+ src/HiggsAnalysis/CombinedLimit/interface/ProfilingTools.h
+

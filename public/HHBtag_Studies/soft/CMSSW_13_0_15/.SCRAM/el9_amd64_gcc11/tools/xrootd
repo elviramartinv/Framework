@@ -1,0 +1,33 @@
+{
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61/include/xrootd",
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61/include/xrootd/private"
+  ],
+  "LIB": [
+    "XrdUtils",
+    "XrdCl"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61/lib64"
+  ],
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61/bin"
+    ],
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61/include/xrootd/private"
+    ]
+  },
+  "TOOLNAME": "xrootd",
+  "TOOLVERSION": "5.5.1-91de1b57c27562f2702f6e3ad7feaa61",
+  "USE": [
+    "root_cxxdefaults",
+    "scitokens-cpp"
+  ],
+  "VARIABLES": [
+    "XROOTD_BASE",
+    "INCLUDE",
+    "LIBDIR"
+  ],
+  "XROOTD_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/xrootd/5.5.1-91de1b57c27562f2702f6e3ad7feaa61"
+}

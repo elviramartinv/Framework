@@ -1,0 +1,13 @@
+{
+  "EXPORT": {
+    "LIB": [
+      "1"
+    ]
+  },
+  "NAME": "HHToolsHHbtag",
+  "USE": [
+    "PhysicsTools/TensorFlow",
+    "tensorflow",
+    "tensorflow-cc"
+  ]
+}

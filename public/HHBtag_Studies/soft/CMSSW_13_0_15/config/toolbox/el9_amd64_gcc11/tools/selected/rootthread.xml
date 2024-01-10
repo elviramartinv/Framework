@@ -1,0 +1,5 @@
+<tool name="rootthread" version="6.26.11-a931eb5f206ceca777958cf9f4442b77">
+  <info url="http://root.cern.ch/root/"/>
+  <lib name="Thread"/>
+  <use name="rootrio"/>
+</tool>

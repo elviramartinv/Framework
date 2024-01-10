@@ -1,0 +1,20 @@
+{
+  "BUILDPRODUCTS": {
+    "BIN": {
+      "testClassicSVfit": {
+        "FILES": "testClassicSVfit.cc",
+        "FLAGS": {
+          "CPPDEFINES": [
+            "USE_SVFITTF"
+          ]
+        },
+        "TYPE": "bin",
+        "USE": [
+          "TauAnalysis/ClassicSVfit",
+          "TauAnalysis/SVfitTF",
+          "root"
+        ]
+      }
+    }
+  }
+}

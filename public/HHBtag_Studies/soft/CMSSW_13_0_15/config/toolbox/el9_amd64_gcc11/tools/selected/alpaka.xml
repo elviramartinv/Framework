@@ -1,0 +1,12 @@
+<tool name="alpaka" version="develop-20230621-4393fe639887c67e9ce03fadc0c689af">
+  <use name="boost"/>
+  <client>
+    <environment name="ALPAKA_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpaka/develop-20230621-4393fe639887c67e9ce03fadc0c689af"/>
+    <environment name="INCLUDE"     default="$ALPAKA_BASE/include"/>
+  </client>
+  <runtime name="ROOT_INCLUDE_PATH" value="$INCLUDE" type="path"/>
+  <!-- set ALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128 for host, device, and dictionaries -->
+  <flags CXXFLAGS="-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"/>
+  <flags CUDA_FLAGS="-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"/>
+  <flags GENREFLEX_CPPFLAGS="-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"/>
+</tool>

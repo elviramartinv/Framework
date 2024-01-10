@@ -1,0 +1,6 @@
+<tool name="py2-virtualenv" version="20.4.2">
+  <client>
+    <environment name="PY2_VIRTUALENV_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-virtualenv/20.4.2"/>
+  </client>
+  <runtime name="PATH" value="$PY2_VIRTUALENV_BASE/bin" type="path"/>
+</tool>

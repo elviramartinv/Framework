@@ -1,0 +1,5 @@
+<tool name="alpaka-cuda" version="0.6.0-ljfedo2">
+  <use name="alpaka"/>
+  <use name="cuda"/>
+  <flags CXXFLAGS="-DALPAKA_ACC_GPU_CUDA_ENABLED"/>
+</tool>

@@ -1,0 +1,2 @@
+ALL_PACKAGES += TauAnalysis/ClassicSVfit
+subdirs_src_TauAnalysis_ClassicSVfit := src_TauAnalysis_ClassicSVfit_bin src_TauAnalysis_ClassicSVfit_src

@@ -1,0 +1,3 @@
+ALL_SUBSYSTEMS+=TauAnalysis
+subdirs_src_TauAnalysis = src_TauAnalysis_ClassicSVfit src_TauAnalysis_SVfitTF
+subdirs_src += src_TauAnalysis

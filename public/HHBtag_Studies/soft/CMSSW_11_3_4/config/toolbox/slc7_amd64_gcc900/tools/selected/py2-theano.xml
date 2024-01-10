@@ -1,0 +1,6 @@
+<tool name="py2-theano" version="1.0.5-ljfedo3">
+  <client>
+    <environment name="PY2_THEANO_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-Theano/1.0.5-ljfedo3"/>
+  </client>
+  <runtime name="PATH" value="$PY2_THEANO_BASE/bin" type="path"/>
+</tool>

@@ -1,0 +1,4 @@
+<tool name="tensorflow-tf2xla" version="2.4.1-ljfedo">
+  <lib name="tf2xla"/>
+  <use name="tensorflow"/>
+</tool>

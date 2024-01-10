@@ -1,0 +1,7 @@
+<tool name="tensorflow-cc" version="2.4.1-ljfedo">
+  <lib name="tensorflow_cc"/>
+  <use name="tensorflow-framework"/>
+  <use name="eigen"/>
+  <use name="libpng"/>
+  <use name="sqlite"/>
+</tool>

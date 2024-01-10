@@ -1,0 +1,6 @@
+<tool name="py2-coverage" version="5.5">
+  <client>
+    <environment name="PY2_COVERAGE_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-coverage/5.5"/>
+  </client>
+  <runtime name="PATH" value="$PY2_COVERAGE_BASE/bin" type="path"/>
+</tool>

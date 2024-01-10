@@ -1,0 +1,22 @@
+{
+  "EXPORT": {
+    "LIB": [
+      "1"
+    ]
+  },
+  "FLAGS": {
+    "CPPDEFINES": [
+      "USE_SVFITTF"
+    ],
+    "LDFLAGS": [
+      "-rdynamic"
+    ]
+  },
+  "NAME": "TauAnalysisClassicSVfit",
+  "USE": [
+    "TauAnalysis/SVfitTF",
+    "boost",
+    "root",
+    "roofit"
+  ]
+}

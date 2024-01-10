@@ -1,0 +1,6 @@
+<tool name="py2-luigi" version="2.8.13-ljfedo">
+  <client>
+    <environment name="PY2_LUIGI_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-luigi/2.8.13-ljfedo"/>
+  </client>
+  <runtime name="PATH" value="$PY2_LUIGI_BASE/bin" type="path"/>
+</tool>

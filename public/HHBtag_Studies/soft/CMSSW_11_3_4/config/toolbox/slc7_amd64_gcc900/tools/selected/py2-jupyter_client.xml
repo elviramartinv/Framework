@@ -1,0 +1,6 @@
+<tool name="py2-jupyter_client" version="5.3.5-ljfedo2">
+  <client>
+    <environment name="PY2_JUPYTER_CLIENT_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-jupyter_client/5.3.5-ljfedo2"/>
+  </client>
+  <runtime name="PATH" value="$PY2_JUPYTER_CLIENT_BASE/bin" type="path"/>
+</tool>

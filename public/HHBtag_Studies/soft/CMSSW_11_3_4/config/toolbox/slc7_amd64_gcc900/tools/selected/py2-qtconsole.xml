@@ -1,0 +1,6 @@
+<tool name="py2-qtconsole" version="4.7.7-ljfedo3">
+  <client>
+    <environment name="PY2_QTCONSOLE_BASE" default="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/py2-qtconsole/4.7.7-ljfedo3"/>
+  </client>
+  <runtime name="PATH" value="$PY2_QTCONSOLE_BASE/bin" type="path"/>
+</tool>

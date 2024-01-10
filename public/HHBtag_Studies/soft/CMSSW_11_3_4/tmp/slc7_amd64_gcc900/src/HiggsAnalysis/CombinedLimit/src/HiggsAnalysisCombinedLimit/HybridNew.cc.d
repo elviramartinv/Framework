@@ -1,0 +1,23 @@
+tmp/slc7_amd64_gcc900/src/HiggsAnalysis/CombinedLimit/src/HiggsAnalysisCombinedLimit/HybridNew.cc.o: \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/HybridNew.cc \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/HybridNew.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/LimitAlgo.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/CascadeMinimizer.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/Combine.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/CloseCoutSentry.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/RooFitGlobalKillSentry.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/SimplerLikelihoodRatioTestStat.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/ProfiledLikelihoodRatioTestStat.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/SimplerLikelihoodRatioTestStatExt.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/ProfiledLikelihoodRatioTestStatExt.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/RooSimultaneousOpt.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/CachingNLL.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/SimpleGaussianConstraint.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/SimplePoissonConstraint.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/SimpleConstraintGroup.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/BestFitSigmaTestStat.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/ToyMCSamplerOpt.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/utils.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/Significance.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/ProfilingTools.h \
+ /afs/cern.ch/user/e/emartinv/public/Ntuple_prod/soft/CMSSW_11_3_4/src/HiggsAnalysis/CombinedLimit/src/../interface/Logger.h

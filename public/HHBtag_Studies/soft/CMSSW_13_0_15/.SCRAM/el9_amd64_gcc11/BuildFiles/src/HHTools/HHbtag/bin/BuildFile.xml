@@ -1,0 +1,16 @@
+{
+  "BUILDPRODUCTS": {
+    "BIN": {
+      "hhBtagTest": {
+        "FILES": "hhBtagTest.cc",
+        "TYPE": "bin",
+        "USE": [
+          "HHTools/HHbtag",
+          "PhysicsTools/TensorFlow",
+          "tensorflow",
+          "tensorflow-cc"
+        ]
+      }
+    }
+  }
+}
