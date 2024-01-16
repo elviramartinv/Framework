@@ -1,0 +1,9 @@
+/.law
+/data*
+__pycache__
+/output
+/soft
+/crab
+/.crabOverseer*
+/test
+/.vscode
