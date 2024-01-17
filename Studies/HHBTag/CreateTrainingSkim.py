@@ -7,7 +7,7 @@ if __name__ == "__main__":
 import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
-import Common.BaselineSelection_2017 as Baseline
+import Common.BaselineSelection as Baseline
 
 
 jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
