@@ -148,14 +148,14 @@ public:
         }
         return leptons;
     }
-    template<typename IntVector, typename FloatVector>
+    template<typename IntVector, typename FloatVector, typename ShortVector, typename UShortVector>
     static std::vector<GenLepton> fromNanoAOD( const FloatVector& GenPart_pt ,
                                             const FloatVector& GenPart_eta,
                                             const FloatVector& GenPart_phi,
                                             const FloatVector& GenPart_mass,
-                                            const IntVector& GenPart_genPartIdxMother,
+                                            const ShortVector& GenPart_genPartIdxMother,
                                             const IntVector& GenPart_pdgId,
-                                            const IntVector& GenPart_statusFlags,
+                                            const UShortVector& GenPart_statusFlags,
                                             int event=0){
         try {
             std::vector<GenLepton> genLeptons;
@@ -168,7 +168,7 @@ public:
                 if(!GenParticle::ChargedLeptons().count(static_cast<GenParticle::PdgId>(abs_pdg)))
                     continue;
                 GenLepton lepton;
-                FillImplNano<IntVector, FloatVector> fillImplNano(lepton, processed_particles,GenPart_pt,GenPart_eta, GenPart_phi, GenPart_mass,
+                FillImplNano<IntVector, FloatVector, ShortVector, UShortVector> fillImplNano(lepton, processed_particles,GenPart_pt,GenPart_eta, GenPart_phi, GenPart_mass,
                 GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags);
                 fillImplNano.FillAll(genPart_idx);
                 lepton.initialize();
@@ -386,7 +386,7 @@ private:
             }
         }
     };
-    template<typename IntVector, typename FloatVector>
+    template<typename IntVector, typename FloatVector, typename ShortVector, typename UShortVector>
     struct FillImplNano {
         static constexpr size_t NoneIndex = std::numeric_limits<size_t>::max();
 
@@ -397,18 +397,18 @@ private:
         const FloatVector& GenPart_eta_;
         const FloatVector& GenPart_phi_;
         const FloatVector& GenPart_mass_;
-        const IntVector& GenPart_genPartIdxMother_;
+        const ShortVector& GenPart_genPartIdxMother_;
         const IntVector& GenPart_pdgId_;
-        const IntVector& GenPart_statusFlags_;
+        const UShortVector& GenPart_statusFlags_;
 
         FillImplNano(GenLepton& lepton, std::set<size_t>& processedParticles,
             const FloatVector& GenPart_pt ,
             const FloatVector& GenPart_eta,
             const FloatVector& GenPart_phi,
             const FloatVector& GenPart_mass,
-            const IntVector& GenPart_genPartIdxMother,
+            const ShortVector& GenPart_genPartIdxMother,
             const IntVector& GenPart_pdgId,
-            const IntVector& GenPart_statusFlags) :
+            const UShortVector& GenPart_statusFlags) :
             lepton_(lepton), processedParticles_(processedParticles),
             GenPart_pt_(GenPart_pt), GenPart_eta_(GenPart_eta), GenPart_phi_(GenPart_phi),
             GenPart_mass_(GenPart_mass), GenPart_genPartIdxMother_(GenPart_genPartIdxMother),
