@@ -7,10 +7,10 @@ if __name__ == "__main__":
 import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
-import Common.BaselineSelection as Baseline
+import Common.BaselineSelection_2017 as Baseline
 
 
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "btagDeepFlavCvB", "btagDeepFlavCvL", "btagDeepFlavQG", "particleNetAK4_CvsB", "particleNetAK4_CvsL", "particleNetAK4_QvsG", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
+jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -27,7 +27,7 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     Baseline.Initialize(True, True)
 
     df = ROOT.RDataFrame("Events", inFile)
-    # df = df.Range(10)
+    #df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
     df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
