@@ -857,10 +857,32 @@ TTWZ:
   miniAOD: /TTWZ_TuneCP5_13TeV-madgraph-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v1/MINIAODSIM
   nanoAOD: /TTWZ_TuneCP5_13TeV-madgraph-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM
   sampleType: TTWZ
-GluGluToHHTo2B2Tau:
-  miniAOD: /GluGluToHHTo2B2Tau_TuneCP5_PSWeights_node_SM_13TeV-madgraph-pythia8/RunIISummer20UL17MiniAODv2-106X_mc2017_realistic_v9-v2/MINIAODSIM
-  miniAOD: /GluGluToHHTo2B2Tau_TuneCP5_PSWeights_node_SM_13TeV-madgraph-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM
-  sampleType: GluGluToHHTo2B2Tau
+GluGluToHHTo2B2Tau_node_SM:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_1:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_2:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_3:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_4:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_5:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_6:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_7:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_8:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_9:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_10:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_11:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_12:
+  sampleType: HHnonRes
 SingleMuon_Run2017B-UL:
   miniAOD: /SingleMuon/Run2017B-UL2017_MiniAODv2-v1/MINIAOD
   nanoAOD: /SingleMuon/Run2017B-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD

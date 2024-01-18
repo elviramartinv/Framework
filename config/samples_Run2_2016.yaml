@@ -12,6 +12,20 @@ GLOBAL:
     - Flag_BadChargedCandidateFilter
     - Flag_eeBadScFilter
     - Flag_hfNoisyHitsFilter
+  deepTauWPs:
+    eTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Medium
+    muTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Medium
+    tauTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Medium
+  deepTauVersion: 2p1
 GluGluToRadionToHHTo2B2Tau_M-250:
   miniAOD: /GluGluToRadionToHHTo2B2Tau_M-250_TuneCP5_PSWeights_narrow_13TeV-madgraph-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM
   nanoAOD: /GluGluToRadionToHHTo2B2Tau_M-250_TuneCP5_PSWeights_narrow_13TeV-madgraph-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM
@@ -748,6 +762,32 @@ TTWZ:
   miniAOD: /TTWZ_TuneCP5_13TeV-madgraph-pythia8/RunIISummer20UL16MiniAODv2-106X_mcRun2_asymptotic_v17-v1/MINIAODSIM
   nanoAOD: /TTWZ_TuneCP5_13TeV-madgraph-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM
   sampleType: TTWZ
+GluGluToHHTo2B2Tau_node_SM:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_1:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_2:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_3:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_4:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_5:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_6:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_7:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_8:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_9:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_10:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_11:
+  sampleType: HHnonRes
+GluGluToHHTo2B2Tau_node_12:
+  sampleType: HHnonRes
 SingleMuon_Run2016F:
   miniAOD: /SingleMuon/Run2016F-UL2016_MiniAODv2-v2/MINIAOD
   nanoAOD: /SingleMuon/Run2016F-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD
