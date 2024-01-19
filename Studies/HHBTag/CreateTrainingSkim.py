@@ -10,7 +10,7 @@ import yaml
 import Common.BaselineSelection as Baseline
 
 
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
+jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -68,7 +68,10 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define("HttCandidate_leg1_mass", "HttCandidate.leg_p4[1].M()")
     df = df.Define("channel", "static_cast<int>(genChannel)")
     n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
+
+    df = df.Define("Jet_particleNetAK4_B", "Jet_btagPNetB")
     df = JetSavingCondition(df)
+
     # df = GenJetSavingCondition(df)
 
     report = df.Report()
