@@ -27,16 +27,19 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     Baseline.Initialize(True, True)
 
     df = ROOT.RDataFrame("Events", inFile)
-    df = df.Range(10)
+    # df = df.Range(100)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
     df = Baseline.DefineGenObjects(df, isHH=True, Zbb_AK4mass_mpv=mpv)
 
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     df = Baseline.PassGenAcceptance(df)
+    # print("Número de entradas después de PassGenAcceptance: ", df.Count().GetValue())
     df = Baseline.GenJetSelection(df)
     df = Baseline.GenJetZttOverlapRemoval(df)
     df = Baseline.RequestOnlyResolvedGenJets(df)
+    
+
 
     df = Baseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
@@ -69,6 +72,7 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define("channel", "static_cast<int>(genChannel)")
     n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
     df = JetSavingCondition(df)
+    # print("Número de entradas después de JetSavingCondition: ", df.Count().GetValue())
     # df = GenJetSavingCondition(df)
 
     report = df.Report()
