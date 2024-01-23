@@ -81,6 +81,7 @@ struct PdG {
   static int nu_tau() { static const int pdg = ParticleDB::GetParticleInfo("nu_tau").pdgId; return pdg; }
   static int b() { static const int pdg = ParticleDB::GetParticleInfo("b").pdgId; return pdg; }
   static int bbar() { static const int pdg = ParticleDB::GetParticleInfo("bbar").pdgId; return pdg; }
+  static int Z() { static const int pdg = ParticleDB::GetParticleInfo("Z0").pdgId; return pdg; }
 
   static bool isNeutrino(int pdg)
   {
@@ -184,12 +185,14 @@ RVecI GetLastHadrons(const RVecI& GenPart_pdgId, const RVecI& GenPart_genPartIdx
     RVecI mothers = GetMothers(part_idx, GenPart_genPartIdxMother);
     RVecI daughters = GenPart_daughters.at(part_idx);
     bool comesFrom_b = false;
-    bool comesFrom_H = false;
+    // bool comesFrom_H = false;
+    bool comesFrom_Z = false;
     bool hasHadronsDaughters = false;
 
     for (auto& mother : mothers){
       if(abs(GenPart_pdgId[mother])==5) comesFrom_b=true;
-      if(abs(GenPart_pdgId[mother])==25) comesFrom_H=true;
+      // if(abs(GenPart_pdgId[mother])==25) comesFrom_H=true;
+      if(abs(GenPart_pdgId[mother])==23) comesFrom_Z=true;
     }
     for (auto& daughter:daughters){
       ParticleInfo daughterInformation = ParticleDB::GetParticleInfo(GenPart_pdgId[daughter]);
@@ -197,7 +200,7 @@ RVecI GetLastHadrons(const RVecI& GenPart_pdgId, const RVecI& GenPart_genPartIdx
         hasHadronsDaughters = true;
       }
     }
-    if(comesFrom_b && comesFrom_H && !hasHadronsDaughters){
+    if(comesFrom_b && comesFrom_Z && !hasHadronsDaughters){
       ParticleInfo lastHadronInformation = ParticleDB::GetParticleInfo(GenPart_pdgId[part_idx]);
       if(lastHadronInformation.type == "baryon" || lastHadronInformation.type == "meson"){
         lastHadrons.push_back(part_idx);

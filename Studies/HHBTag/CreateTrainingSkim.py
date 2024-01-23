@@ -10,7 +10,7 @@ import yaml
 import Common.BaselineSelection as Baseline
 
 
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "btagDeepFlavCvB", "btagDeepFlavCvL", "btagDeepFlavQG", "particleNetAK4_CvsB", "particleNetAK4_CvsL", "particleNetAK4_QvsG", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
+jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -27,27 +27,27 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     Baseline.Initialize(True, True)
 
     df = ROOT.RDataFrame("Events", inFile)
-    # df = df.Range(10)
+    df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
-    df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
+    df = Baseline.DefineGenObjects(df, isHH=True, Zbb_AK4mass_mpv=mpv)
 
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     df = Baseline.PassGenAcceptance(df)
     df = Baseline.GenJetSelection(df)
-    df = Baseline.GenJetHttOverlapRemoval(df)
+    df = Baseline.GenJetZttOverlapRemoval(df)
     df = Baseline.RequestOnlyResolvedGenJets(df)
 
     df = Baseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
-    df = Baseline.RecoHttCandidateSelection(df, config["GLOBAL"])
+    df = Baseline.RecoZttCandidateSelection(df, config["GLOBAL"])
     df = Baseline.RecoJetSelection(df)
 
-    df = df.Define('genChannel', 'genHttCandidate->channel()')
-    df = df.Define('recoChannel', 'HttCandidate.channel()')
+    df = df.Define('genChannel', 'genZttCandidate->channel()')
+    df = df.Define('recoChannel', 'ZttCandidate.channel()')
 
     df = df.Filter("genChannel == recoChannel", "SameGenRecoChannels")
-    df = df.Filter("GenRecoMatching(*genHttCandidate, HttCandidate, 0.2)", "SameGenRecoHTT")
+    df = df.Filter("GenRecoMatching(*genZttCandidate, ZttCandidate, 0.2)", "SameGenRecoZTT")
     # df = Baseline.RequestOnlyResolvedRecoJets(df)
 
     df = Baseline.GenRecoJetMatching(df)
@@ -56,16 +56,16 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-    df = Baseline.DefineHbbCand(df)
+    df = Baseline.DefineZbbCand(df)
 
-    df = df.Define("HttCandidate_leg0_pt", "HttCandidate.leg_p4[0].Pt()")
-    df = df.Define("HttCandidate_leg0_eta", "HttCandidate.leg_p4[0].Eta()")
-    df = df.Define("HttCandidate_leg0_phi", "HttCandidate.leg_p4[0].Phi()")
-    df = df.Define("HttCandidate_leg0_mass", "HttCandidate.leg_p4[0].M()")
-    df = df.Define("HttCandidate_leg1_pt", "HttCandidate.leg_p4[1].Pt()")
-    df = df.Define("HttCandidate_leg1_eta", "HttCandidate.leg_p4[1].Eta()")
-    df = df.Define("HttCandidate_leg1_phi", "HttCandidate.leg_p4[1].Phi()")
-    df = df.Define("HttCandidate_leg1_mass", "HttCandidate.leg_p4[1].M()")
+    df = df.Define("ZttCandidate_leg0_pt", "ZttCandidate.leg_p4[0].Pt()")
+    df = df.Define("ZttCandidate_leg0_eta", "ZttCandidate.leg_p4[0].Eta()")
+    df = df.Define("ZttCandidate_leg0_phi", "ZttCandidate.leg_p4[0].Phi()")
+    df = df.Define("ZttCandidate_leg0_mass", "ZttCandidate.leg_p4[0].M()")
+    df = df.Define("ZttCandidate_leg1_pt", "ZttCandidate.leg_p4[1].Pt()")
+    df = df.Define("ZttCandidate_leg1_eta", "ZttCandidate.leg_p4[1].Eta()")
+    df = df.Define("ZttCandidate_leg1_phi", "ZttCandidate.leg_p4[1].Phi()")
+    df = df.Define("ZttCandidate_leg1_mass", "ZttCandidate.leg_p4[1].M()")
     df = df.Define("channel", "static_cast<int>(genChannel)")
     n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
     df = JetSavingCondition(df)
@@ -77,12 +77,12 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
         raise RuntimeError('There are more than two jets matched! ')
 
     colToSave = ["event","luminosityBlock",
-                "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",
+                "ZttCandidate_leg0_pt", "ZttCandidate_leg0_eta", "ZttCandidate_leg0_phi", "ZttCandidate_leg0_mass", "ZttCandidate_leg1_pt", "ZttCandidate_leg1_eta", "ZttCandidate_leg1_phi","ZttCandidate_leg1_mass",
                 "channel","sample","period","X_mass", "node_index", "MET_pt", "MET_phi", "PuppiMET_pt", "PuppiMET_phi","DeepMETResolutionTune_pt", "DeepMETResolutionTune_phi","DeepMETResponseTune_pt", "DeepMETResponseTune_phi"]
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     # colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
-    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
+    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Zbb" , "GenJetAK8_Zbb", "GenJet_idx"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)

@@ -5,33 +5,33 @@
 #include "TextIO.h"
 #include "HHCore.h"
 
-std::shared_ptr<HTTCand<2>> GetGenHTTCandidate(int evt, const RVecI& GenPart_pdgId,
+std::shared_ptr<ZTTCand<2>> GetGenZTTCandidate(int evt, const RVecI& GenPart_pdgId,
                                             const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
                                             const RVecF& GenPart_pt, const RVecF& GenPart_eta,
                                             const RVecF& GenPart_phi, const RVecF& GenPart_mass,
                                             bool throw_error_if_not_found)
 {
   try {
-    std::set<int> htt_indices;
+    std::set<int> ztt_indices;
     for(int n = 0; n < GenPart_pdgId.size(); ++n) {
         const GenStatusFlags status(GenPart_statusFlags.at(n));
-        if(!(GenPart_pdgId[n] == PdG::Higgs() && status.isLastCopy())) continue;
+        if(!(GenPart_pdgId[n] == PdG::Z() && status.isLastCopy())) continue;
         const auto& daughters = GenPart_daughters.at(n);
         int n_tau_daughters = std::count_if(daughters.begin(), daughters.end(), [&](int idx) {
         return std::abs(GenPart_pdgId.at(idx)) == PdG::tau();
         });
         if(n_tau_daughters == 0) continue;
         if(n_tau_daughters != 2)
-        throw analysis::exception("Invalid H->tautau decay. n_tau_daughters = %1%, higgs_idx = %2%")
+        throw analysis::exception("Invalid Z->tautau decay. n_tau_daughters = %1%, z_idx = %2%")
             % n_tau_daughters % n;
-        htt_indices.insert(n);
+        ztt_indices.insert(n);
     }
-    if(htt_indices.empty())
-        throw analysis::exception("H->tautau not found.");
-    if(htt_indices.size() != 1)
-        throw analysis::exception("Multiple H->tautau candidates.");
-    const int htt_index = *htt_indices.begin();
-    HTTCand<2> htt_cand;
+    if(ztt_indices.empty())
+        throw analysis::exception("Z->tautau not found.");
+    if(ztt_indices.size() != 1)
+        throw analysis::exception("Multiple Z->tautau candidates.");
+    const int htt_index = *ztt_indices.begin();
+    ZTTCand<2> ztt_cand;
     int leg_idx = 0;
     for(int tau_idx : GenPart_daughters.at(htt_index)) {
         if(std::abs(GenPart_pdgId.at(tau_idx)) != PdG::tau()) continue;
@@ -56,68 +56,68 @@ std::shared_ptr<HTTCand<2>> GetGenHTTCandidate(int evt, const RVecI& GenPart_pdg
                 % n_neutrinos % tau_idx;
 
         lepton_idx = GetLastCopy(lepton_idx, GenPart_pdgId, GenPart_statusFlags, GenPart_daughters);
-        htt_cand.leg_index.at(leg_idx) = lepton_idx;
+        ztt_cand.leg_index.at(leg_idx) = lepton_idx;
         ++leg_idx;
     }
-    int leg0_pdg = std::abs(GenPart_pdgId.at(htt_cand.leg_index.at(0)));
-    int leg1_pdg = std::abs(GenPart_pdgId.at(htt_cand.leg_index.at(1)));
+    int leg0_pdg = std::abs(GenPart_pdgId.at(ztt_cand.leg_index.at(0)));
+    int leg1_pdg = std::abs(GenPart_pdgId.at(ztt_cand.leg_index.at(1)));
     if(leg0_pdg > leg1_pdg || (leg0_pdg == leg1_pdg
-            && GenPart_pt.at(htt_cand.leg_index.at(0)) < GenPart_pt.at(htt_cand.leg_index.at(1))))
-        std::swap(htt_cand.leg_index.at(0), htt_cand.leg_index.at(1));
+            && GenPart_pt.at(ztt_cand.leg_index.at(0)) < GenPart_pt.at(ztt_cand.leg_index.at(1))))
+        std::swap(ztt_cand.leg_index.at(0), ztt_cand.leg_index.at(1));
 
-    for(leg_idx = 0; leg_idx < htt_cand.leg_index.size(); ++leg_idx) {
-        const int genPart_index = htt_cand.leg_index.at(leg_idx);
+    for(leg_idx = 0; leg_idx < ztt_cand.leg_index.size(); ++leg_idx) {
+        const int genPart_index = ztt_cand.leg_index.at(leg_idx);
         const int genPart_pdg = GenPart_pdgId.at(genPart_index);
         const auto& genPart_info = ParticleDB::GetParticleInfo(genPart_pdg);
-        htt_cand.leg_type[leg_idx] = PdGToLeg(genPart_pdg);
-        htt_cand.leg_charge[leg_idx] = genPart_info.charge;
-        htt_cand.leg_p4[leg_idx] = GetVisibleP4(genPart_index, GenPart_pdgId, GenPart_daughters,
+        ztt_cand.leg_type[leg_idx] = PdGToLeg(genPart_pdg);
+        ztt_cand.leg_charge[leg_idx] = genPart_info.charge;
+        ztt_cand.leg_p4[leg_idx] = GetVisibleP4(genPart_index, GenPart_pdgId, GenPart_daughters,
                                                 GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass);
     }
 
-    return std::make_shared<HTTCand<2>>(htt_cand);
+    return std::make_shared<ZTTCand<2>>(ztt_cand);
   } catch(analysis::exception& e) {
     if(throw_error_if_not_found)
-      throw analysis::exception("GetGenHTTCandidate (event=%1%): %2%") % evt % e.message();
-    return std::make_shared<HTTCand<2>>();
+      throw analysis::exception("GetGenZTTCandidate (event=%1%): %2%") % evt % e.message();
+    return std::make_shared<ZTTCand<2>>();
   }
 }
 
-int GetGenHBBIndex(int evt, const RVecI& GenPart_pdgId,
+int GetGenZBBIndex(int evt, const RVecI& GenPart_pdgId,
                            const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags)
 {
   try {
-    std::set<int> hbb_indices;
+    std::set<int> zbb_indices;
     for(int n = 0; n < GenPart_pdgId.size(); ++n) {
         const GenStatusFlags status(GenPart_statusFlags.at(n));
-        if(!(GenPart_pdgId[n] == PdG::Higgs() && status.isLastCopy())) continue;
+        if(!(GenPart_pdgId[n] == PdG::Z() && status.isLastCopy())) continue;
         const auto& daughters = GenPart_daughters.at(n);
         int n_b_daughters = std::count_if(daughters.begin(), daughters.end(), [&](int idx) {
         return std::abs(GenPart_pdgId.at(idx)) == PdG::b();
         });
         if(n_b_daughters == 0) continue;
         if(n_b_daughters != 2)
-        throw analysis::exception("Invalid H->bb decay. n_b_daughters = %1%, higgs_idx = %2%")
+        throw analysis::exception("Invalid Z->bb decay. n_b_daughters = %1%, z_idx = %2%")
             % n_b_daughters % n;
-        hbb_indices.insert(n);
+        zbb_indices.insert(n);
     }
-    if(hbb_indices.empty())
-        throw analysis::exception("H->bb not found.");
-    if(hbb_indices.size() != 1)
-        throw analysis::exception("Multiple H->bb candidates.");
-    const int hbb_index = *hbb_indices.begin();
-    return hbb_index;
+    if(zbb_indices.empty())
+        throw analysis::exception("Z->bb not found.");
+    if(zbb_indices.size() != 1)
+        throw analysis::exception("Multiple Z->bb candidates.");
+    const int zbb_index = *zbb_indices.begin();
+    return zbb_index;
   }
   catch(analysis::exception& e) {
-      throw analysis::exception("GetGenHBBCandidate (event=%1%): %2%") % evt % e.message();
+      throw analysis::exception("GetGenZBBCandidate (event=%1%): %2%") % evt % e.message();
     }
 }
 
 
 
-bool PassGenAcceptance(const HTTCand<2>& HTT_Cand){
-    for(size_t i = 0; i < HTT_Cand.leg_p4.size(); ++i){
-        if(!(HTT_Cand.leg_p4.at(i).pt()>20 && std::abs(HTT_Cand.leg_p4.at(i).eta())<2.3 )){
+bool PassGenAcceptance(const ZTTCand<2>& ZTT_Cand){
+    for(size_t i = 0; i < ZTT_Cand.leg_p4.size(); ++i){
+        if(!(ZTT_Cand.leg_p4.at(i).pt()>20 && std::abs(ZTT_Cand.leg_p4.at(i).eta())<2.3 )){
             return false;
         }
     }

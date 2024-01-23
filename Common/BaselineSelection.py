@@ -4,8 +4,8 @@ from .Utilities import *
 
 initialized = False
 
-ana_reco_object_collections = [ "Electron", "Muon", "Tau", "Jet", "FatJet", "boostedTau", "MET", "PuppiMET", "DeepMETResponseTune", "DeepMETResolutionTune","SubJet"]
-deepTauVersions = {"2p1":"2017", "2p5":"2018"}
+ana_reco_object_collections = [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "DeepMETResponseTune", "DeepMETResolutionTune","SubJet"]
+# deepTauVersions = {"2p1":"2017", "2p5":"2018"}
 
 def Initialize(loadTF=False, loadHHBtag=False):
     global initialized
@@ -31,7 +31,7 @@ def Initialize(loadTF=False, loadHHBtag=False):
             ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", 1)')
         initialized = True
 
-leg_names = [ "Electron", "Muon", "Tau", "boostedTau" ]
+leg_names = [ "Electron", "Muon", "Tau" ]
 
 channels = [ 'muMu', 'eMu', 'eE', 'muTau', 'eTau', 'tauTau' ] # in order of importance during the channel selection
 
@@ -57,7 +57,7 @@ def applyMETFlags(df, MET_flags):
     MET_flags_string = ' && '.join(MET_flags)
     return df.Filter(MET_flags_string, "MET filters")
 
-def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suffix='nano'):
+def DefineGenObjects(df, isData=False, isHH=False, Zbb_AK4mass_mpv=91., p4_suffix='nano'):
     if isData:
         df = df.Define("genLeptons", "std::vector<reco_tau::gen_truth::GenLepton>()")
     else:
@@ -73,33 +73,33 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
         return df
 
     if isHH:
-        df = df.Define("genHttCandidate", """GetGenHTTCandidate(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, false)""")
-        df = df.Define("genHbbIdx", """GetGenHBBIndex(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags)""")
-        df = df.Define("genHbb_isBoosted", "GenPart_pt[genHbbIdx]>550")
+        df = df.Define("genZttCandidate", """GetGenZTTCandidate(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, false)""")
+        df = df.Define("genZbbIdx", """GetGenZBBIndex(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags)""")
+        df = df.Define("genZbb_isBoosted", "GenPart_pt[genZbbIdx]>550")
     for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
         df = df.Define(f"{var}_idx", f"CreateIndexes({var}_pt.size())")
         df = df.Define(f"{var}_p4", f"GetP4({var}_pt,{var}_eta,{var}_phi,{var}_mass, {var}_idx)")
 
     df = df.Define("GenJet_b_PF", "abs(GenJet_partonFlavour)==5")
     df = df.Define("GenJetAK8_b_PF", "abs(GenJetAK8_partonFlavour)==5")
-    df = df.Define("GenJet_Hbb",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_PF)")
-    df = df.Define("GenJetAK8_Hbb", "FindGenJetAK8(GenJetAK8_mass, GenJetAK8_b_PF)")
+    df = df.Define("GenJet_Zbb",f"FindTwoJetsClosestToMPV({Zbb_AK4mass_mpv}, GenJet_p4, GenJet_b_PF)")
+    df = df.Define("GenJetAK8_Zbb", "FindGenJetAK8(GenJetAK8_mass, GenJetAK8_b_PF)")
 
     return df
 
 def PassGenAcceptance(df):
-    df = df.Filter("genHttCandidate.get() != nullptr", "genHttCandidate present")
-    return df.Filter("PassGenAcceptance(*genHttCandidate)", "genHttCandidate Acceptance")
+    df = df.Filter("genZttCandidate.get() != nullptr", "genZttCandidate present")
+    return df.Filter("PassGenAcceptance(*genZttCandidate)", "genZttCandidate Acceptance")
 
 def GenJetSelection(df):
-    df = df.Define("GenJet_B1","GenJet_pt > 20 && abs(GenJet_eta) < 2.5 && GenJet_Hbb")
-    df = df.Define("GenJetAK8_B1","GenJetAK8_pt > 170 && abs(GenJetAK8_eta) < 2.5 && GenJetAK8_Hbb")
-    return df.Filter("GenJet_idx[GenJet_B1].size()==2 || (GenJetAK8_idx[GenJetAK8_B1].size()==1 && genHbb_isBoosted)", "(One)Two b-parton (Fat)jets at least")
+    df = df.Define("GenJet_B1","GenJet_pt > 20 && abs(GenJet_eta) < 2.5 && GenJet_Zbb")
+    df = df.Define("GenJetAK8_B1","GenJetAK8_pt > 170 && abs(GenJetAK8_eta) < 2.5 && GenJetAK8_Zbb")
+    return df.Filter("GenJet_idx[GenJet_B1].size()==2 || (GenJetAK8_idx[GenJetAK8_B1].size()==1 && genZbb_isBoosted)", "(One)Two b-parton (Fat)jets at least")
 
-def GenJetHttOverlapRemoval(df):
+def GenJetZttOverlapRemoval(df):
     for var in ["GenJet", "GenJetAK8"]:
-        df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
-    return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
+        df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genZttCandidate->leg_p4[0], genZttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
+    return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genZbb_isBoosted)", "No overlap between genJets and genZttCandidates")
 
 def RequestOnlyResolvedGenJets(df):
     return df.Filter("GenJet_idx[GenJet_B2].size()==2", "Resolved topology")
@@ -134,7 +134,7 @@ def DefineMETCuts(met_thr, met_collections):
 def RecoLeptonsSelection(df, apply_filter=True):
     df = df.Define("Electron_B0", f"""
         v_ops::pt(Electron_p4) > 18 && abs(v_ops::eta(Electron_p4)) < 2.3 && abs(Electron_dz) < 0.2 && abs(Electron_dxy) < 0.045
-        && (Electron_mvaIso_WP90 || (Electron_mvaNoIso_WP90 && Electron_pfRelIso03_all < 0.5))
+        && (Electron_mvaFall17V2Iso_WP90 || (Electron_mvaFall17V2noIso_WP90 && Electron_pfRelIso03_all < 0.5))
     """)
 
     df = df.Define("Muon_B0", f"""
@@ -146,20 +146,22 @@ def RecoLeptonsSelection(df, apply_filter=True):
         && (    (    Tau_idDeepTau2017v2p1VSe >= {WorkingPointsTauVSe.VVLoose.value}
                   && Tau_idDeepTau2017v2p1VSmu >= {WorkingPointsTauVSmu.VLoose.value}
                   && Tau_idDeepTau2017v2p1VSjet >= {WorkingPointsTauVSjet.VVVLoose.value} )
-             || (    Tau_idDeepTau2018v2p5VSe >= {WorkingPointsTauVSe.VVLoose.value}
-                  && Tau_idDeepTau2018v2p5VSmu >= {WorkingPointsTauVSmu.VLoose.value}
-                  && Tau_idDeepTau2018v2p5VSjet >= {WorkingPointsTauVSjet.VVVLoose.value} )
-           )
+            )
     """)
 
-    df = df.Define("boostedTau_B0", f"""
-        v_ops::pt(boostedTau_p4) > 40 && abs(v_ops::eta(boostedTau_p4)) < 2.3 && abs(boostedTau_dz) < 0.2 && boostedTau_decayMode != 5
-        && boostedTau_decayMode != 6 && boostedTau_idMVAnewDM2017v2 >= {WorkingPointsBoostedTauVSjet.VVLoose.value}
-    """)
+        #          || (    Tau_idDeepTau2018v2p5VSe >= {WorkingPointsTauVSe.VVLoose.value}
+        #           && Tau_idDeepTau2018v2p5VSmu >= {WorkingPointsTauVSmu.VLoose.value}
+        #           && Tau_idDeepTau2018v2p5VSjet >= {WorkingPointsTauVSjet.VVVLoose.value} )
+        #    )
+
+    # df = df.Define("boostedTau_B0", f"""
+    #     v_ops::pt(boostedTau_p4) > 40 && abs(v_ops::eta(boostedTau_p4)) < 2.3 && abs(boostedTau_dz) < 0.2 && boostedTau_decayMode != 5
+    #     && boostedTau_decayMode != 6 && boostedTau_idMVAnewDM2017v2 >= {WorkingPointsBoostedTauVSjet.VVLoose.value}
+    # """)
 
     df = df.Define("Electron_B0T", """
-        Electron_B0 && (Electron_mvaIso_WP80
-                        || (Electron_mvaNoIso_WP80 && Electron_pfRelIso03_all < 0.15))
+        Electron_B0 && (Electron_mvaFall17V2Iso_WP80
+                        || (Electron_mvaFall17V2noIso_WP80 && Electron_pfRelIso03_all < 0.15))
     """)
 
     df = df.Define("Muon_B0T", """
@@ -169,13 +171,13 @@ def RecoLeptonsSelection(df, apply_filter=True):
 
     df = df.Define("Tau_B0T", f"""
         Tau_B0 && (
-                    Tau_idDeepTau2017v2p1VSjet >= {WorkingPointsTauVSjet.Medium.value}
-                   || Tau_idDeepTau2018v2p5VSjet >= {WorkingPointsTauVSjet.Loose.value} )
+                    Tau_idDeepTau2017v2p1VSjet >= {WorkingPointsTauVSjet.Medium.value} )
     """)
+    #  || Tau_idDeepTau2018v2p5VSjet >= {WorkingPointsTauVSjet.Loose.value} )
 
-    df = df.Define("boostedTau_B0T", f"""
-        boostedTau_B0 && boostedTau_idMVAnewDM2017v2 >= {WorkingPointsBoostedTauVSjet.Medium.value}
-    """)
+    # df = df.Define("boostedTau_B0T", f"""
+    #     boostedTau_B0 && boostedTau_idMVAnewDM2017v2 >= {WorkingPointsBoostedTauVSjet.Medium.value}
+    # """)
 
     met_cuts = DefineMETCuts(80, ["MET", "DeepMETResolutionTune", "DeepMETResponseTune", "PuppiMET"])
 
@@ -183,7 +185,7 @@ def RecoLeptonsSelection(df, apply_filter=True):
     for leg1_idx in range(len(leg_names)):
         for leg2_idx in range(max(1, leg1_idx), len(leg_names)):
             leg1, leg2 = leg_names[leg1_idx], leg_names[leg2_idx]
-            if leg1 == 'Tau' and leg2 == 'boostedTau': continue
+            # if leg1 == 'Tau' and leg2 == 'boostedTau': continue
             ch_filter = f"{leg1}{leg2}_B0"
             ch_filters.append(ch_filter)
             if leg1 == leg2:
@@ -204,15 +206,15 @@ def RecoLeptonsSelection(df, apply_filter=True):
     else:
         return df, filter_expr
 
-def RecoHttCandidateSelection(df, config):
+def RecoZttCandidateSelection(df, config):
     df = df.Define("Electron_iso", "Electron_pfRelIso03_all") \
            .Define("Muon_iso", "Muon_pfRelIso04_all") \
            .Define("Tau_iso", f"""-Tau_rawDeepTau{deepTauVersions[config["deepTauVersion"]]}v{config["deepTauVersion"]}VSjet""")
     #print(f"""-Tau_rawDeepTau{deepTauVersions[config["deepTauVersion"]]}v{config["deepTauVersion"]}VSjet""")
 
-    df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && abs(v_ops::eta(Electron_p4)) < 2.3 && v_ops::pt(Electron_p4) > 20 && Electron_mvaIso_WP80 ")
-    #df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaIso_WP80")
-    #df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaNoIso_WP80 && Electron_pfRelIso03_all<0.1")
+    df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && abs(v_ops::eta(Electron_p4)) < 2.3 && v_ops::pt(Electron_p4) > 20 && Electron_mvaFall17V2Iso_WP80 ")
+    #df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaFall17V2Iso_WP80")
+    #df = df.Define("Electron_B2_eTau_1", f"Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaFall17V2noIso_WP80 && Electron_pfRelIso03_all<0.1")
     eta_cut = 2.3 if config["deepTauVersion"] == '2p1' else 2.5
     df = df.Define("Tau_B2_eTau_2", f"""
         Tau_B0 && v_ops::pt(Tau_p4) > 20 && v_ops::eta(Tau_p4) < {eta_cut}
@@ -261,7 +263,7 @@ def RecoHttCandidateSelection(df, config):
     """)
 
     df = df.Define("Electron_B2_eMu_1", f"""
-        Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaNoIso_WP80 && Electron_pfRelIso03_all < 0.3
+        Electron_B0 && v_ops::pt(Electron_p4) > 20 && Electron_mvaFall17V2noIso_WP80 && Electron_pfRelIso03_all < 0.3
     """)
     df = df.Define("Muon_B2_eMu_2", f"""
         Muon_B0 && v_ops::pt(Muon_p4) > 20 && (   (Muon_tightId && Muon_pfRelIso04_all < 0.15)
@@ -269,7 +271,7 @@ def RecoHttCandidateSelection(df, config):
     """)
 
     df = df.Define("Electron_B2_eE_1", f"""
-        Electron_B0 && v_ops::pt(Electron_p4) > 20 &&  Electron_mvaNoIso_WP80 && Electron_pfRelIso03_all < 0.15
+        Electron_B0 && v_ops::pt(Electron_p4) > 20 &&  Electron_mvaFall17V2noIso_WP80 && Electron_pfRelIso03_all < 0.15
     """)
     df = df.Define("Electron_B2_eE_2", f"""
                     Electron_B2_eE_1
@@ -278,9 +280,9 @@ def RecoHttCandidateSelection(df, config):
     cand_columns = []
     for ch in channels:
         leg1, leg2 = getChannelLegs(ch)
-        cand_column = f"HttCandidates_{ch}"
+        cand_column = f"ZttCandidates_{ch}"
         df = df.Define(cand_column, f"""
-            GetHTTCandidates<2>(Channel::{ch}, 0.5, {leg1}_B2_{ch}_1, {leg1}_p4, {leg1}_iso, {leg1}_charge, {leg1}_genMatchIdx,
+            GetZTTCandidates<2>(Channel::{ch}, 0.5, {leg1}_B2_{ch}_1, {leg1}_p4, {leg1}_iso, {leg1}_charge, {leg1}_genMatchIdx,
                                                  {leg2}_B2_{ch}_2, {leg2}_p4, {leg2}_iso, {leg2}_charge, {leg2}_genMatchIdx)
         """)
         cand_columns.append(cand_column)
@@ -290,31 +292,31 @@ def RecoHttCandidateSelection(df, config):
     #    df.Display({f"candSize_{c}"}).Print()
     df = df.Filter(" || ".join(cand_filters), "Reco Baseline 2")
     cand_list_str = ', '.join([ '&' + c for c in cand_columns])
-    return df.Define('HttCandidate', f'GetBestHTTCandidate<2>({{ {cand_list_str} }}, event)')
+    return df.Define('ZttCandidate', f'GetBestZTTCandidate<2>({{ {cand_list_str} }}, event)')
 
 def ThirdLeptonVeto(df):
     df = df.Define("Electron_vetoSel",
                    f"""v_ops::pt(Electron_p4) > 10 && abs(v_ops::eta(Electron_p4)) < 2.5 && abs(Electron_dz) < 0.2 && abs(Electron_dxy) < 0.045
-                      && ( Electron_mvaIso_WP90 == true )
-                     && (HttCandidate.isLeg(Electron_idx, Leg::e)== false)""") # || ( Electron_mvaNoIso_WP90 && Electron_pfRelIso03_all<0.3) --> removed
+                      && ( Electron_mvaFall17V2Iso_WP90 == true )
+                     && (ZttCandidate.isLeg(Electron_idx, Leg::e)== false)""") # || ( Electron_mvaFall17V2noIso_WP90 && Electron_pfRelIso03_all<0.3) --> removed
     df = df.Filter("Electron_idx[Electron_vetoSel].size() == 0", "No extra electrons")
     df = df.Define("Muon_vetoSel",
                    f"""v_ops::pt(Muon_p4) > 10 && abs(v_ops::eta(Muon_p4)) < 2.4 && abs(Muon_dz) < 0.2 && abs(Muon_dxy) < 0.045
                       && ( Muon_mediumId || Muon_tightId ) && Muon_pfRelIso04_all<0.3
-                      && (HttCandidate.isLeg(Muon_idx, Leg::mu) == false)""")
+                      && (ZttCandidate.isLeg(Muon_idx, Leg::mu) == false)""")
     df = df.Filter("Muon_idx[Muon_vetoSel].size() == 0", "No extra muons")
     return df
 
 def RecoJetSelection(df):
     df = df.Define("Jet_bIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId & 2 ) && (Jet_puId>0 || v_ops::pt(Jet_p4)>50)")
     df = df.Define("FatJet_bbIncl", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
-    df = df.Define("Jet_bCand", "RemoveOverlaps(Jet_p4, Jet_bIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
-    df = df.Define("FatJet_bbCand", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl, {{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
+    df = df.Define("Jet_bCand", "RemoveOverlaps(Jet_p4, Jet_bIncl,{{ZttCandidate.leg_p4[0], ZttCandidate.leg_p4[1]},}, 2, 0.5)")
+    df = df.Define("FatJet_bbCand", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl, {{ZttCandidate.leg_p4[0], ZttCandidate.leg_p4[1]},}, 2, 0.5)")
     return df
 
 def ExtraRecoJetSelection(df):
     df = df.Define("ExtraJet_B0", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 5 && ( Jet_jetId & 2 ) && (Jet_puId>0 || v_ops::pt(Jet_p4)>50)")
-    df = df.Define(f"ObjectsToRemoveOverlap", "if(Hbb_isValid){return std::vector<RVecLV>({{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1],HbbCandidate->leg_p4[0],HbbCandidate->leg_p4[1]}}); } return std::vector<RVecLV>({{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]}})")
+    df = df.Define(f"ObjectsToRemoveOverlap", "if(Zbb_isValid){return std::vector<RVecLV>({{ZttCandidate.leg_p4[0], ZttCandidate.leg_p4[1],ZbbCandidate->leg_p4[0],ZbbCandidate->leg_p4[1]}}); } return std::vector<RVecLV>({{ZttCandidate.leg_p4[0], ZttCandidate.leg_p4[1]}})")
     df = df.Define(f"ExtraJet_B1", """ RemoveOverlaps(Jet_p4, ExtraJet_B0,ObjectsToRemoveOverlap, 2, 0.5)""")
     return df
 
@@ -327,12 +329,12 @@ def GenRecoJetMatching(df):
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
-def DefineHbbCand(df):
-    df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
-    df = df.Define("HbbCandidate", "GetHbbCandidate(Jet_HHBtagScore, Jet_bCand, Jet_p4, Jet_idx)")
+def DefineZbbCand(df):
+    df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, ZttCandidate, period, event)")
+    df = df.Define("ZbbCandidate", "GetZbbCandidate(Jet_HHBtagScore, Jet_bCand, Jet_p4, Jet_idx)")
     return df
 
-def RecottHttCandidateSelection_ttHH(df):
+def RecottZttCandidateSelection_ttHH(df):
     df = df.Define("Electron_iso", "Electron_pfRelIso03_all") \
            .Define("Muon_iso", "Muon_pfRelIso04_all") \
            .Define("Tau_iso", "-Tau_rawDeepTau2018v2p5VSjet")
@@ -340,7 +342,7 @@ def RecottHttCandidateSelection_ttHH(df):
     df = df.Define("Electron_ttHH", f"""
         v_ops::pt(Electron_p4) > 20 && abs(v_ops::eta(Electron_p4)) < 2.5
         && abs(Electron_dz) < 0.2 && abs(Electron_dxy) < 0.045
-        && Electron_mvaNoIso_WP90 && Electron_pfRelIso03_all < 0.5
+        && Electron_mvaFall17V2noIso_WP90 && Electron_pfRelIso03_all < 0.5
     """)
     df = df.Define("Electron_ttHH_tight", "Electron_ttHH && Electron_pfRelIso03_all < 0.15")
 
@@ -374,7 +376,7 @@ def RecottHttCandidateSelection_ttHH(df):
     for ch in ttHH_channels:
         if ch in ttHH_exclueded_channels: continue
         legs = getChannelLegs(ch)
-        cand_column = f"HttCandidates_{ch}"
+        cand_column = f"ZttCandidates_{ch}"
         leg_inputs = []
         for leg_idx, leg in enumerate(legs):
             sel_suffix = '_tight' if leg_idx < len(legs) - 1 else ''
@@ -382,17 +384,17 @@ def RecottHttCandidateSelection_ttHH(df):
                 f"{leg}_ttHH{sel_suffix}", f"{leg}_p4", f"{leg}_iso", f"{leg}_charge", f"{leg}_genMatchIdx"
             ])
         leg_inputs_str = ', '.join(leg_inputs)
-        df = df.Define(cand_column, f"GetHTTCandidates<4>(Channel::{ch}, 0.5, {leg_inputs_str})")
+        df = df.Define(cand_column, f"GetZttCandidates<4>(Channel::{ch}, 0.5, {leg_inputs_str})")
         cand_columns.append(cand_column)
     cand_filters = [ f'{c}.size() > 0' for c in cand_columns ]
-    df = df.Filter(" || ".join(cand_filters), "At lease one HTT candidate")
+    df = df.Filter(" || ".join(cand_filters), "At lease one Ztt candidate")
     cand_list_str = ', '.join([ '&' + c for c in cand_columns])
-    return df.Define('HttCandidate', f'GetBestHTTCandidate<4>({{ {cand_list_str} }}, event)')
+    return df.Define('ZttCandidate', f'GetBestZTTCandidate<4>({{ {cand_list_str} }}, event)')
 
 def RecoJetSelection_ttHH(df):
     df = df.Define("Jet_ttHH_sel", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 5 && ( Jet_jetId & 2 ) && (Jet_puId>0 || v_ops::pt(Jet_p4)>50)")
     df = df.Define("FatJet_ttHH_sel", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 5")
-    df = df.Define("Jet_ttHH", "RemoveOverlaps(Jet_p4, Jet_ttHH_sel, HttCandidate.getLegP4s(), 0.5)")
+    df = df.Define("Jet_ttHH", "RemoveOverlaps(Jet_p4, Jet_ttHH_sel, ZttCandidate.getLegP4s(), 0.5)")
     df = df.Define("Jet_bCand", "Jet_ttHH && abs(v_ops::eta(Jet_p4)) < 2.5")
-    df = df.Define("FatJet_ttHH", "RemoveOverlaps(FatJet_p4, FatJet_ttHH_sel, HttCandidate.getLegP4s(), 0.5)")
+    df = df.Define("FatJet_ttHH", "RemoveOverlaps(FatJet_p4, FatJet_ttHH_sel, ZttCandidate.getLegP4s(), 0.5)")
     return df.Filter("Jet_idx[Jet_ttHH].size() + FatJet_idx[FatJet_ttHH].size() * 2 >= 4", "Reco jet candidates")

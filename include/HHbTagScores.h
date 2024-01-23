@@ -64,10 +64,10 @@ struct HHBtagWrapper{
 
 
 RVecF GetHHBtagScore(const RVecB& Jet_sel, const RVecI& Jet_idx, const RVecLV& jet_p4,const RVecF& Jet_deepFlavour, const float& met_pt, const float& met_phi,
-                            const HTTCand<2>& HTT_Cand, const int& period, int event){
+                            const ZTTCand<2>& ZTT_Cand, const int& period, int event){
     const ULong64_t parity = event % 2;
     RVecI JetIdxOrdered = ReorderObjects(Jet_deepFlavour, Jet_idx);
-    int channelId = ChannelToHHbTagInput(HTT_Cand.channel());
+    int channelId = ChannelToHHbTagInput(ZTT_Cand.channel());
     RVecF all_scores(JetIdxOrdered.size(), -1.);
     std::vector<float> jet_pt;
     std::vector<float> jet_eta;
@@ -78,12 +78,12 @@ RVecF GetHHBtagScore(const RVecB& Jet_sel, const RVecI& Jet_idx, const RVecLV& j
     std::vector<float> jet_htt_dphi;
     std::vector<int> goodjet_idx_ordered;
 
-    LorentzVectorM hTT_p4 =HTT_Cand.leg_p4[0]+HTT_Cand.leg_p4[1];
+    LorentzVectorM hTT_p4 =ZTT_Cand.leg_p4[0]+ZTT_Cand.leg_p4[1];
     LorentzVectorM MET_p4(met_pt, 0, met_phi, 0);
     float htt_pt=hTT_p4.Pt();
     float htt_eta=hTT_p4.Eta();
     float htt_met_dphi = ROOT::Math::VectorUtil::DeltaPhi(hTT_p4, MET_p4);
-    float htt_scalar_pt= HTT_Cand.leg_p4[0].Pt()+HTT_Cand.leg_p4[1].Pt();
+    float htt_scalar_pt= ZTT_Cand.leg_p4[0].Pt()+ZTT_Cand.leg_p4[1].Pt();
     float rel_met_pt_htt_pt=met_pt/htt_scalar_pt;
 
     // select good jets only
