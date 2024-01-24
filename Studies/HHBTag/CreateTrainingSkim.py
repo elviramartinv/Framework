@@ -8,9 +8,9 @@ import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
 import Common.BaselineSelection as Baseline
+import glob
 
-
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "btagDeepFlavCvB", "btagDeepFlavCvL", "btagDeepFlavQG", "particleNetAK4_CvsB", "particleNetAK4_CvsL", "particleNetAK4_QvsG", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
+jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "HHBtagScore", "bRegRes", "hadronFlavour"]
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -26,31 +26,25 @@ def JetSavingCondition(df):
 def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
     Baseline.Initialize(True, True)
 
-    df = ROOT.RDataFrame("Events", inFile)
+    inFiles = glob.glob(inFile + "/*.root")
+    chain = ROOT.TChain("Events")
+    for File in inFiles:
+        chain.Add(File)
+    df = ROOT.RDataFrame(chain)
+
+    # print("Before", df.Count().GetValue())
     # df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
-    df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
-
-    df = df.Define("n_GenJet", "GenJet_idx.size()")
-    df = Baseline.PassGenAcceptance(df)
-    df = Baseline.GenJetSelection(df)
-    df = Baseline.GenJetHttOverlapRemoval(df)
-    df = Baseline.RequestOnlyResolvedGenJets(df)
+    # df = Baseline.DefineGenObjects(df, isHH=False, Hbb_AK4mass_mpv=mpv)
 
     df = Baseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
     df = Baseline.RecoHttCandidateSelection(df, config["GLOBAL"])
     df = Baseline.RecoJetSelection(df)
 
-    df = df.Define('genChannel', 'genHttCandidate->channel()')
     df = df.Define('recoChannel', 'HttCandidate.channel()')
 
-    df = df.Filter("genChannel == recoChannel", "SameGenRecoChannels")
-    df = df.Filter("GenRecoMatching(*genHttCandidate, HttCandidate, 0.2)", "SameGenRecoHTT")
-    # df = Baseline.RequestOnlyResolvedRecoJets(df)
-
-    df = Baseline.GenRecoJetMatching(df)
     df = df.Define("sample", f"static_cast<int>(SampleType::{sample})")
     df = df.Define("period", f"static_cast<int>(Period::Run2_{period})")
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
@@ -66,15 +60,17 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define("HttCandidate_leg1_eta", "HttCandidate.leg_p4[1].Eta()")
     df = df.Define("HttCandidate_leg1_phi", "HttCandidate.leg_p4[1].Phi()")
     df = df.Define("HttCandidate_leg1_mass", "HttCandidate.leg_p4[1].M()")
-    df = df.Define("channel", "static_cast<int>(genChannel)")
-    n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
+    df = df.Define("channel", "static_cast<int>(recoChannel)")
+    # n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
+    # print("After", df.Count().GetValue())
+
     df = JetSavingCondition(df)
     # df = GenJetSavingCondition(df)
 
     report = df.Report()
     histReport=ReportTools.SaveReport(report.GetValue())
-    if(n_MoreThanTwoMatches.GetValue()!=0) :
-        raise RuntimeError('There are more than two jets matched! ')
+    # if(n_MoreThanTwoMatches.GetValue()!=0) :
+    #     raise RuntimeError('There are more than two jets matched! ')
 
     colToSave = ["event","luminosityBlock",
                 "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",
