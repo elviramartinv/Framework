@@ -8,7 +8,7 @@ import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
 import Common.BaselineSelection as Baseline
-
+import glob
 
 jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
 def JetSavingCondition(df):
@@ -26,7 +26,14 @@ def JetSavingCondition(df):
 def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
     Baseline.Initialize(True, True)
 
-    df = ROOT.RDataFrame("Events", inFile)
+    inFiles = glob.glob(inFile + "/*.root")
+    chain = ROOT.TChain("Events")
+    for File in inFiles:
+        chain.Add(File)
+    df = ROOT.RDataFrame(chain)
+
+    # df = ROOT.RDataFrame("Events", os.path.join(inFile, "/*.root"))
+    # print("evts", df.Count().GetValue())
     # df = df.Range(100)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
@@ -34,12 +41,9 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
 
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     df = Baseline.PassGenAcceptance(df)
-    # print("Número de entradas después de PassGenAcceptance: ", df.Count().GetValue())
     df = Baseline.GenJetSelection(df)
     df = Baseline.GenJetZttOverlapRemoval(df)
     df = Baseline.RequestOnlyResolvedGenJets(df)
-    
-
 
     df = Baseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
@@ -50,7 +54,7 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define('recoChannel', 'ZttCandidate.channel()')
 
     df = df.Filter("genChannel == recoChannel", "SameGenRecoChannels")
-    df = df.Filter("GenRecoMatching(*genZttCandidate, ZttCandidate, 0.2)", "SameGenRecoZTT")
+    df = df.Filter("GenRecoMatching(*genZttCandidate, ZttCandidate, 0.2)", "SameGenRecoZtt")
     # df = Baseline.RequestOnlyResolvedRecoJets(df)
 
     df = Baseline.GenRecoJetMatching(df)
@@ -72,7 +76,6 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Define("channel", "static_cast<int>(genChannel)")
     n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
     df = JetSavingCondition(df)
-    # print("Número de entradas después de JetSavingCondition: ", df.Count().GetValue())
     # df = GenJetSavingCondition(df)
 
     report = df.Report()
@@ -102,7 +105,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--period', type=str)
-    parser.add_argument('--inFile', type=str)
+    # parser.add_argument('--inFile', type=str)
+    parser.add_argument('--inDir', type=str)
     parser.add_argument('--outFile', type=str)
     parser.add_argument('--mass', type=int)
     parser.add_argument('--node_index', type=int, default=-1)
@@ -115,6 +119,7 @@ if __name__ == "__main__":
                         default=f"{os.environ['ANALYSIS_PATH']}/config/pdg_name_type_charge.txt")
     args = parser.parse_args()
 
+
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
 
@@ -126,4 +131,5 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(args.inFile, args.outFile, args.period, args.sample, args.mass, args.node_index, args.mpv, config, snapshotOptions)
+    
+    createSkim(args.inDir, args.outFile, args.period, args.sample, args.mass, args.node_index, args.mpv, config, snapshotOptions)
