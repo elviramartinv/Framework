@@ -31,12 +31,11 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     for File in inFiles:
         chain.Add(File)
     df = ROOT.RDataFrame(chain)
-
     # print("Before", df.Count().GetValue())
     # df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
-    # df = Baseline.DefineGenObjects(df, isHH=False, Hbb_AK4mass_mpv=mpv)
+    df = Baseline.DefineGenObjects(df, isHH=False, Hbb_AK4mass_mpv=mpv)
 
     df = Baseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
