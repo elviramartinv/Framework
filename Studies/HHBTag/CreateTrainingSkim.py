@@ -26,11 +26,19 @@ def JetSavingCondition(df):
 def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
     Baseline.Initialize(True, True)
 
-    inFiles = glob.glob(inFile + "/*.root")
+    inFiles = glob.glob(inFile)
     chain = ROOT.TChain("Events")
     for File in inFiles:
         chain.Add(File)
     df = ROOT.RDataFrame(chain)
+    # if os.path.isdir(inFile):
+    #     inFiles = glob.glob(inFile + "/*.root")
+    #     chain = ROOT.TChain("Events")
+    #     for File in inFiles:
+    #         chain.Add(File)
+    #     df = ROOT.RDataFrame(chain)
+    # else:
+    #     df = ROOT.RDataFrame("Events", inFile)
     # print("Before", df.Count().GetValue())
     # df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
@@ -95,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument('--period', type=str)
     parser.add_argument('--inFile', type=str)
     parser.add_argument('--outFile', type=str)
-    parser.add_argument('--mass', type=int)
+    parser.add_argument('--mass', type=int, default=-1)
     parser.add_argument('--node_index', type=int, default=-1)
     parser.add_argument('--config', required=True, type=str)
     parser.add_argument('--mpv', type=float, default=125)
