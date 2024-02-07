@@ -26,12 +26,7 @@ def JetSavingCondition(df):
 def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
     Baseline.Initialize(True, True)
 
-    inFiles = glob.glob(inFile + "/*.root")
-    chain = ROOT.TChain("Events")
-    for File in inFiles:
-        chain.Add(File)
-    df = ROOT.RDataFrame(chain)
-
+    df = ROOT.RDataFrame("Events", inFile)
     # df = ROOT.RDataFrame("Events", os.path.join(inFile, "/*.root"))
     # print("evts", df.Count().GetValue())
     # df = df.Range(100)
