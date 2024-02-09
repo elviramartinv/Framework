@@ -28,7 +28,7 @@ def Initialize(loadTF=False, loadHHBtag=False):
             IncludeLibs.includeLibTool("tensorflow")
         if(loadHHBtag):
             ROOT.gInterpreter.Declare(f'#include "{header_path_HHbTag}"')
-            ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", 1)')
+            ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", 2)')
         initialized = True
 
 leg_names = [ "Electron", "Muon", "Tau" ]
