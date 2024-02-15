@@ -57,6 +57,7 @@ enum class SampleType : int {
   TTHH = 24,
   TTJ = 25,
   QCD = 26,
+  XToYH = 27
 };
 
 enum class GenLeptonMatch : int {
