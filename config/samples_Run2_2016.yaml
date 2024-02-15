@@ -788,6 +788,8 @@ GluGluToHHTo2B2Tau_node_11:
   sampleType: HHnonRes
 GluGluToHHTo2B2Tau_node_12:
   sampleType: HHnonRes
+XToYHTo2B2Tau:
+  sampleType: XToYH
 SingleMuon_Run2016F:
   miniAOD: /SingleMuon/Run2016F-UL2016_MiniAODv2-v2/MINIAOD
   nanoAOD: /SingleMuon/Run2016F-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD
