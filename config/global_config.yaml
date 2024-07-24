@@ -1,0 +1,15 @@
+GLOBAL:
+  deepTauVersion: 2p5
+  deepTauWPs:
+    eTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Loose
+    muTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Loose
+    tauTau:
+      VSe: VVLoose
+      VSmu: Tight
+      VSjet: Loose
