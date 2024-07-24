@@ -8,9 +8,10 @@ import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
 import Common.BaselineSelection as Baseline
+import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "particleNetAK4_B", "btagDeepFlavCvB", "btagDeepFlavCvL", "btagDeepFlavQG", "particleNetAK4_CvsB", "particleNetAK4_CvsL", "particleNetAK4_QvsG", "HHBtagScore", "bRegRes", "genMatched", "hadronFlavour"]
+jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -24,24 +25,24 @@ def JetSavingCondition(df):
     # return df
 
 def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
-    Baseline.Initialize(True, True)
+    Baseline.Initialize(True, False)
 
     df = ROOT.RDataFrame("Events", inFile)
-    # df = df.Range(10)
+    df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
     df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
 
     df = df.Define("n_GenJet", "GenJet_idx.size()")
-    df = Baseline.PassGenAcceptance(df)
-    df = Baseline.GenJetSelection(df)
-    df = Baseline.GenJetHttOverlapRemoval(df)
-    df = Baseline.RequestOnlyResolvedGenJets(df)
+    df = HHBaseline.PassGenAcceptance(df)
+    df = HHBaseline.GenJetSelection(df)
+    df = HHBaseline.GenJetHttOverlapRemoval(df)
+    df = HHBaseline.RequestOnlyResolvedGenJets(df)
 
-    df = Baseline.RecoLeptonsSelection(df)
+    # df = HHBaseline.RecoLeptonsSelection(df)
     # df = Baseline.RecoJetAcceptance(df)
-    df = Baseline.RecoHttCandidateSelection(df, config["GLOBAL"])
-    df = Baseline.RecoJetSelection(df)
+    df = HHBaseline.RecoHttCandidateSelection(df, config["GLOBAL"])
+    df = HHBaseline.RecoJetSelection(df)
 
     df = df.Define('genChannel', 'genHttCandidate->channel()')
     df = df.Define('recoChannel', 'HttCandidate.channel()')
@@ -50,13 +51,13 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
     df = df.Filter("GenRecoMatching(*genHttCandidate, HttCandidate, 0.2)", "SameGenRecoHTT")
     # df = Baseline.RequestOnlyResolvedRecoJets(df)
 
-    df = Baseline.GenRecoJetMatching(df)
+    df = HHBaseline.GenRecoJetMatching(df)
     df = df.Define("sample", f"static_cast<int>(SampleType::{sample})")
-    df = df.Define("period", f"static_cast<int>(Period::Run2_{period})")
+    df = df.Define("period", f"static_cast<int>(Period::Run3_{period})")
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-    df = Baseline.DefineHbbCand(df)
+    # df = HHBaseline.DefineHbbCand(df) # Excluded for now until I can test the new version for Run3
 
     df = df.Define("HttCandidate_leg0_pt", "HttCandidate.leg_p4[0].Pt()")
     df = df.Define("HttCandidate_leg0_eta", "HttCandidate.leg_p4[0].Eta()")
@@ -78,11 +79,11 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
 
     colToSave = ["event","luminosityBlock",
                 "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",
-                "channel","sample","period","X_mass", "node_index", "MET_pt", "MET_phi", "PuppiMET_pt", "PuppiMET_phi","DeepMETResolutionTune_pt", "DeepMETResolutionTune_phi","DeepMETResponseTune_pt", "DeepMETResponseTune_phi"]
+                "channel","sample","period","X_mass", "node_index", "MET_pt", "MET_phi", "PuppiMET_pt", "PuppiMET_phi"]
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     # colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
-    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
+    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx", "Jet_HHbtag"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)

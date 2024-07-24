@@ -5,8 +5,7 @@ from .Utilities import *
 initialized = False
 
 ana_reco_object_collections = {
-    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "DeepMETResponseTune",
-             "DeepMETResolutionTune", "SubJet" ],
+    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "SubJet" ],
     "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "DeepMETResponseTune",
              "DeepMETResolutionTune", "SubJet" ],
 }
@@ -38,7 +37,7 @@ def Initialize(loadTF=False, loadHHBtag=False):
             if load_result != 0:
                 raise RuntimeError(f"HHBtagWrapper failed to load with status {load_result}")
             ROOT.gInterpreter.Declare(f'#include "{header_path_HHbTag}"')
-            ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", 1)')
+            ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", 2)')
 
         initialized = True
 
