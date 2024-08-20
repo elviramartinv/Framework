@@ -65,6 +65,7 @@ enum class SampleType : int {
   WG = 28,
   ZJNuNu = 29,
   TTX = 30,
+  VBFnonRes = 31,
 };
 
 enum class GenLeptonMatch : int {
