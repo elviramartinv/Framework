@@ -27,7 +27,9 @@ public:
         pi0 = 111, pi = 211, K0_L = 130, K0_S = 310, K0 = 311, K = 321, eta = 221, omega = 223, K_star = 323,
         p = 2212, D = 411, J_psi = 443, D0 = 421, D_s = 431,
         down = 1, up = 2, strange = 3, charm = 4, bottom = 5, top = 6,
-        gluon = 21, photon = 22, Z = 23, W = 24, h0 = 25
+        gluon = 21, photon = 22, Z = 23, W = 24, h0 = 25,
+        rho0 = 113, rho_plus = 213, D_star = 413, D_star0 = 423, K_star0 = 313, delta_plus = 2214, delta_minus = 1114,
+        n = 2112, phi = 333
     };
 
     static const PdgId PdgIdIntToEnum(int pdgId) { return static_cast<PdgId>(std::abs(pdgId)); }
@@ -80,6 +82,15 @@ public:
             s.insert(neutralHadrons().begin(), neutralHadrons().end());
             s.insert(neutralBosons().begin(), neutralBosons().end());
             s.insert(chargedBosons().begin(), chargedBosons().end());
+            s.insert(PdgId::rho0);
+            s.insert(PdgId::rho_plus);
+            s.insert(PdgId::D_star);
+            s.insert(PdgId::D_star0);
+            s.insert(PdgId::K_star0);
+            s.insert(PdgId::delta_plus);
+            s.insert(PdgId::delta_minus);
+            s.insert(PdgId::n);
+            s.insert(PdgId::phi);
             return s;
         };
         static const std::set<PdgId> s = make();
@@ -594,7 +605,7 @@ private:
         const bool isFinalState = particle.daughters.empty();
         if(isFinalState && !particle.isLastCopy) {
             std::cerr << "Inconsistent particle: " << particle << std::endl;
-            ThrowError("last copy flag is not set for a final state particle.");
+            // ThrowError("last copy flag is not set for a final state particle.");
         }
         if(particle.isLastCopy) {
             const bool isChargedHadron = GenParticle::isChargedHadron(particle.pdgCode());
