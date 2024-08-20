@@ -10,6 +10,10 @@ inline int PeriodToHHbTagInput (Period period)
         { Period::Run2_2016, 2016 },
         { Period::Run2_2017, 2017 },
         { Period::Run2_2018, 2018 },
+        { Period::Run3_2022, 2022 },
+        { Period::Run3_2022EE, 2022 },
+        { Period::Run3_2023, 2023 },
+        { Period::Run3_2023BPix, 2023 }
     };
     auto iter = periodHHBtag.find(period);
     if (iter == periodHHBtag.end()) {
@@ -65,6 +69,7 @@ struct HHBtagWrapper{
 
 RVecF GetHHBtagScore(const RVecB& Jet_sel, const RVecI& Jet_idx, const RVecLV& jet_p4,const RVecF& Jet_deepFlavour, const float& met_pt, const float& met_phi,
                             const HTTCand<2>& HTT_Cand, const int& period, int event){
+
     const ULong64_t parity = event % 2;
     RVecI JetIdxOrdered = ReorderObjects(Jet_deepFlavour, Jet_idx);
     int channelId = ChannelToHHbTagInput(HTT_Cand.channel());
@@ -102,7 +107,10 @@ RVecF GetHHBtagScore(const RVecB& Jet_sel, const RVecI& Jet_idx, const RVecLV& j
         jet_htt_dphi.push_back(ROOT::Math::VectorUtil::DeltaPhi(hTT_p4,jet_p4.at(jet_idx_ordered)));
     }
 
+    // std::cout << "Periodo hhbtag: " << hhBtag_period << std::endl;
+    // std::cout << "ChannelId hhbtag: " << channelId << std::endl;
 
+// try {
     RVecF goodJet_scores = HHBtagWrapper::Get().GetScore(jet_pt, jet_eta,
                                              rel_jet_M_pt, rel_jet_E_pt,
                                              jet_htt_deta, jet_deepFlavour,
@@ -112,10 +120,17 @@ RVecF GetHHBtagScore(const RVecB& Jet_sel, const RVecI& Jet_idx, const RVecLV& j
                                              rel_met_pt_htt_pt,
                                              htt_scalar_pt, parity);
 
+// } catch (const std::exception& e) {
+//     std::cerr << "Error en GetScore: " << e.what() << std::endl;
+//     throw;
+// }
+
      for(size_t jet_idx=0; jet_idx<goodjet_idx_ordered.size(); jet_idx++){
         int jet_idx_ordered = goodjet_idx_ordered[jet_idx];
         all_scores[jet_idx_ordered] = goodJet_scores[jet_idx] ;
     }
+
+
     return all_scores;
 
 

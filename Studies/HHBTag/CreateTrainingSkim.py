@@ -11,7 +11,7 @@ import Common.BaselineSelection as Baseline
 import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
-jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -25,7 +25,7 @@ def JetSavingCondition(df):
     # return df
 
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
-    Baseline.Initialize(True, False)
+    Baseline.Initialize(True, True)
 
     df = ROOT.RDataFrame("Events", inFile)
     # df = df.Range(10)
@@ -57,7 +57,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, co
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-    # df = HHBaseline.DefineHbbCand(df) # Excluded for now until I can test the new version for Run3
+    df = HHBaseline.DefineHbbCand(df) # Excluded for now until I can test the new version for Run3
 
     df = df.Define("HttCandidate_leg0_pt", "HttCandidate.leg_p4[0].Pt()")
     df = df.Define("HttCandidate_leg0_eta", "HttCandidate.leg_p4[0].Eta()")
@@ -83,7 +83,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, co
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     # colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
-    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx", "Jet_HHbtag"]
+    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)
