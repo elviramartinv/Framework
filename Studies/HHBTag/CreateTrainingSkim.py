@@ -24,11 +24,11 @@ def JetSavingCondition(df):
         # df = df.Define(f"genjet_{genvar}",f"Take(GenJet_{genvar}, GenJet_idx)")
     # return df
 
-def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
+def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
     Baseline.Initialize(True, False)
 
     df = ROOT.RDataFrame("Events", inFile)
-    df = df.Range(10)
+    # df = df.Range(10)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
     df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
@@ -53,7 +53,7 @@ def createSkim(inFile, outFile, period, sample, X_mass, node_index, mpv, config,
 
     df = HHBaseline.GenRecoJetMatching(df)
     df = df.Define("sample", f"static_cast<int>(SampleType::{sample})")
-    df = df.Define("period", f"static_cast<int>(Period::Run3_{period})")
+    df = df.Define("period", f"static_cast<int>(Period::Run{run}_{period})")
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
@@ -99,9 +99,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--period', type=str)
+    parser.add_argument('--run', type=str, default="3")
     parser.add_argument('--inFile', type=str)
     parser.add_argument('--outFile', type=str)
-    parser.add_argument('--mass', type=int)
+    parser.add_argument('--X_mass', type=int, default=-1)
     parser.add_argument('--node_index', type=int, default=-1)
     parser.add_argument('--config', required=True, type=str)
     parser.add_argument('--mpv', type=float, default=125)
@@ -123,4 +124,4 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(args.inFile, args.outFile, args.period, args.sample, args.mass, args.node_index, args.mpv, config, snapshotOptions)
+    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, config, snapshotOptions)
