@@ -29,7 +29,8 @@ public:
         down = 1, up = 2, strange = 3, charm = 4, bottom = 5, top = 6,
         gluon = 21, photon = 22, Z = 23, W = 24, h0 = 25,
         rho0 = 113, rho_plus = 213, D_star = 413, D_star0 = 423, K_star0 = 313, delta_plus = 2214, delta_minus = 1114,
-        n = 2112, phi = 333
+        n = 2112, phi = 333, eta_c = 441, eta_prime = 331, Sigma0 = 3212, Sigma_plus = 3222, Sigma_minus = 3112, 
+        Lambda = 3122, Lambda_c_plus = 4122, Delta_plusplus = 2224, a1_plus = 20213
     };
 
     static const PdgId PdgIdIntToEnum(int pdgId) { return static_cast<PdgId>(std::abs(pdgId)); }
@@ -91,6 +92,15 @@ public:
             s.insert(PdgId::delta_minus);
             s.insert(PdgId::n);
             s.insert(PdgId::phi);
+            s.insert(PdgId::eta_c);
+            s.insert(PdgId::eta_prime);
+            s.insert(PdgId::Sigma0);
+            s.insert(PdgId::Sigma_plus);
+            s.insert(PdgId::Sigma_minus);
+            s.insert(PdgId::Lambda);
+            s.insert(PdgId::Lambda_c_plus);
+            s.insert(PdgId::Delta_plusplus);
+            s.insert(PdgId::a1_plus);
             return s;
         };
         static const std::set<PdgId> s = make();
