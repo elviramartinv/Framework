@@ -10,8 +10,8 @@ import yaml
 import Common.BaselineSelection as Baseline
 import AnaProd.HH_bbtautau.baseline as HHBaseline
 
-
-jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+version = input("Please enter the HHBtag version (1,2 or 3): ")
+jetVar_list = [ "pt", "eta", "phi", "mass", f"HHBtagScore_v{version}", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
 def JetSavingCondition(df):
     df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
     for var in jetVar_list:
@@ -24,7 +24,7 @@ def JetSavingCondition(df):
         # df = df.Define(f"genjet_{genvar}",f"Take(GenJet_{genvar}, GenJet_idx)")
     # return df
 
-def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
+def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, version, config, snapshotOptions):
     Baseline.Initialize(True, True)
 
     df = ROOT.RDataFrame("Events", inFile)
@@ -57,7 +57,8 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, co
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-    df = HHBaseline.DefineHbbCand(df) # Excluded for now until I can test the new version for Run3
+    # df = HHBaseline.DefineHbbCand(df) 
+    df = df.Define(f"Jet_HHBtagScore_v{version}", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
 
     df = df.Define("HttCandidate_leg0_pt", "HttCandidate.leg_p4[0].Pt()")
     df = df.Define("HttCandidate_leg0_eta", "HttCandidate.leg_p4[0].Eta()")
@@ -106,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument('--node_index', type=int, default=-1)
     parser.add_argument('--config', required=True, type=str)
     parser.add_argument('--mpv', type=float, default=125)
+    parser.add_argument('--version', type=int, default=2)
     parser.add_argument('--sample', type=str)
     parser.add_argument('--compressionLevel', type=int, default=9)
     parser.add_argument('--compressionAlgo', type=str, default="LZMA")
@@ -124,4 +126,4 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, config, snapshotOptions)
+    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, args.version, config, snapshotOptions)
