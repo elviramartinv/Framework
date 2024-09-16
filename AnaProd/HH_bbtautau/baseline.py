@@ -1,5 +1,6 @@
 from Common.Utilities import *
 
+
 channels = [ 'muMu', 'eMu', 'eE', 'muTau', 'eTau', 'tauTau' ] # in order of importance during the channel selection
 leg_names = [ "Electron", "Muon", "Tau" ]
 
@@ -18,7 +19,7 @@ def getChannelLegs(channel):
             raise RuntimeError(f"Invalid channel name {channel}")
         legs.append(leg_names[name_idx])
         ch_str = ch_str[len(obj_name):]
-    return legs
+    return legs 
 
 def PassGenAcceptance(df):
     df = df.Filter("genHttCandidate.get() != nullptr", "genHttCandidate present")
@@ -32,6 +33,11 @@ def GenJetSelection(df):
 def GenJetHttOverlapRemoval(df):
     for var in ["GenJet", "GenJetAK8"]:
         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
+    return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
+
+def GenJetHttOverlapRemoval_CCLUB(df):
+    for var in ["GenJet", "GenJetAK8"]:
+        df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{dau1_p4, dau2_p4}},}}, 2, 0.5)" )
     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def RequestOnlyResolvedGenJets(df):
@@ -92,18 +98,18 @@ def RecoHttCandidateSelection(df, config):
     df = df.Define("Electron_B2_eE_2", f""" Electron_B0 && Electron_mvaNoIso_WP80 && Electron_pfRelIso03_all < 0.3 """)
 
     cand_columns = []
+    
     for ch in channels:
         leg1, leg2 = getChannelLegs(ch)
         cand_column = f"HttCandidates_{ch}"
         df = df.Define(cand_column, f"""
-            GetHTTCandidates<2>(Channel::{ch}, 0.5, {leg1}_B2_{ch}_1, {leg1}_p4, {leg1}_iso, {leg1}_charge, {leg1}_genMatchIdx,{leg2}_B2_{ch}_2, {leg2}_p4, {leg2}_iso, {leg2}_charge, {leg2}_genMatchIdx)
+            GetHTTCandidates<2>(Channel::{ch}, 0.5, {leg1}_B2_{ch}_1, {leg1}_p4, {leg1}_iso, {leg1}_charge, {leg1}_genMatchIdx, {leg2}_B2_{ch}_2, {leg2}_p4, {leg2}_iso, {leg2}_charge, {leg2}_genMatchIdx)
         """)
         cand_columns.append(cand_column)
     cand_filters = [ f'{c}.size() > 0' for c in cand_columns ]
-    stringfilter = " || ".join(cand_filters)
-    df = df.Filter(" || ".join(cand_filters), "Reco Baseline 2")
+    df = df.Filter(" || ".join(cand_filters))
     cand_list_str = ', '.join([ '&' + c for c in cand_columns])
-    return df.Define('HttCandidate', f'GetBestHTTCandidate<2>({{ {cand_list_str} }}, event)')
+    return df.Define('HttCandidate', f'GetBestHTTCandidate<2>({{ {cand_list_str} }}, event)') 
 
 def ThirdLeptonVeto(df):
     df = df.Define("Electron_vetoSel",
@@ -119,10 +125,17 @@ def ThirdLeptonVeto(df):
     return df
 
 def RecoJetSelection(df):
-    df = df.Define("Jet_bIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId & 2 ) && (v_ops::pt(Jet_p4)>50)")
+    df = df.Define("Jet_bIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 2 ) ")
     df = df.Define("FatJet_bbIncl", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
     df = df.Define("Jet_bCand", "RemoveOverlaps(Jet_p4, Jet_bIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
     df = df.Define("FatJet_bbCand", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl, {{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
+    return df
+
+def RecoJetSelection_CCLUB(df):
+    df = df.Define("Jet_bIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 2 ) ")
+    df = df.Define("FatJet_bbIncl_CCLUB", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
+    df = df.Define("Jet_bCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_bIncl_CCLUB,{{dau1_p4, dau2_p4},}, 2, 0.5)")
+    df = df.Define("FatJet_bbCand_CCLUB", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl_CCLUB, {{dau1_p4, dau2_p4},}, 2, 0.5)")
     return df
 
 def ExtraRecoJetSelection(df):

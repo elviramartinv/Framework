@@ -5,7 +5,7 @@ from .Utilities import *
 initialized = False
 
 ana_reco_object_collections = {
-    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "SubJet" ],
+    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "SubJet", "dau1", "dau2" ],
     "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "DeepMETResponseTune",
              "DeepMETResolutionTune", "SubJet" ],
 }
@@ -21,6 +21,7 @@ def Initialize(loadTF=False, loadHHBtag=False):
         header_path_Gen ="include/BaselineGenSelection.h"
         header_path_Reco ="include/BaselineRecoSelection.h"
         header_path_HHbTag ="include/HHbTagScores.h"
+        header_path_HHbTag_v3 = "include/HHbTagScores_v3.h"
         ROOT.gInterpreter.Declare(f'#include "{header_path_RootExt}"')
         ROOT.gInterpreter.Declare(f'#include "{header_path_GenLepton}"')
         ROOT.gInterpreter.Declare(f'#include "{header_path_Gen}"')
@@ -37,8 +38,12 @@ def Initialize(loadTF=False, loadHHBtag=False):
             load_result = ROOT.gSystem.Load(lib_path)
             if load_result != 0:
                 raise RuntimeError(f"HHBtagWrapper failed to load with status {load_result}")
-            ROOT.gInterpreter.Declare(f'#include "{header_path_HHbTag}"')
-            ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", {HHBtag_version})')
+            if HHBtag_version == "3":
+                ROOT.gInterpreter.Declare(f'#include "{header_path_HHbTag_v3}"')
+                ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", {HHBtag_version})')
+            else:
+                ROOT.gInterpreter.Declare(f'#include "{header_path_HHbTag}"')
+                ROOT.gROOT.ProcessLine(f'HHBtagWrapper::Initialize("{os.environ["CMSSW_BASE"]}/src/HHTools/HHbtag/models/", {HHBtag_version})')
 
         initialized = True
 
@@ -92,6 +97,8 @@ def CreateRecoP4(df, suffix='nano', nano_version="v12"):
     for obj in ana_reco_object_collections[nano_version]:
         if "MET" in obj:
             df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, 0., {obj}_phi, 0.)")
+        elif "dau1" in obj or "dau2" in obj:
+            df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, {obj}_eta, {obj}_phi, {obj}_mass)")
         else:
             df = df.Define(f"{obj}_idx", f"CreateIndexes({obj}_pt.size())")
             df = df.Define(f"{obj}_p4{suffix}", f"GetP4({obj}_pt, {obj}_eta, {obj}_phi, {obj}_mass, {obj}_idx)")
