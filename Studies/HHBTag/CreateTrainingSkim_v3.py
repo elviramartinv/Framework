@@ -11,7 +11,7 @@ import Common.BaselineSelection as Baseline
 import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
-def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, config, snapshotOptions):
+def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
     jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore_v3", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
         df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagPNetB, Jet_idx[Jet_bCand_CCLUB])')
@@ -37,25 +37,11 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, co
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     df = HHBaseline.PassGenAcceptance(df)
     df = HHBaseline.GenJetSelection(df)
-    # df = HHBaseline.GenJetHttOverlapRemoval(df)
     df = HHBaseline.GenJetHttOverlapRemoval_CCLUB(df)
-    # df = HHBaseline.RequestOnlyResolvedGenJets(df)
 
-    # df = HHBaseline.RecoLeptonsSelection(df)
-    # df = Baseline.RecoJetAcceptance(df)
-    df = HHBaseline.RecoHttCandidateSelection(df, config["GLOBAL"]) ## mantaining it for GetHHBtagScore_v2
-    # df = HHBaseline.RecoHttCandidateSelection(df)
     df = HHBaseline.RecoJetSelection_CCLUB(df)
-    df = HHBaseline.RecoJetSelection(df)
 
-    # df = df.Define('genChannel', 'genHttCandidate->channel()')
-    # df = df.Define('recoChannel', 'HttCandidate.channel()')
-
-    # df = df.Filter("genChannel == recoChannel", "SameGenRecoChannels")
-    # df = df.Filter("GenRecoMatching(*genHttCandidate, HttCandidate, 0.2)", "SameGenRecoHTT")
-    # df = Baseline.RequestOnlyResolvedRecoJets(df)
-
-    df = HHBaseline.GenRecoJetMatching(df)
+    df = HHBaseline.GenRecoJetMatching_CCLUB(df)
     df = df.Define("sample", f"static_cast<int>(SampleType::{sample})")
     df = df.Define("period", f"static_cast<int>(Period::Run{run}_{period})")
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
@@ -129,4 +115,4 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, config, snapshotOptions)
+    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, snapshotOptions)

@@ -153,6 +153,11 @@ def GenRecoJetMatching(df):
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
+def GenRecoJetMatching_CCLUB(df):
+    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand_CCLUB, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
+    df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
+    return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
+
 def DefineHbbCand(df):
     df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
     df = df.Define("HbbCandidate", "GetHbbCandidate(Jet_HHBtagScore, Jet_bCand, Jet_p4, Jet_idx)")
