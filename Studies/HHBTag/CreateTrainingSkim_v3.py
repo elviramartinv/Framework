@@ -95,7 +95,6 @@ if __name__ == "__main__":
     parser.add_argument('--outFile', type=str)
     parser.add_argument('--X_mass', type=int, default=-1)
     parser.add_argument('--node_index', type=int, default=-1)
-    parser.add_argument('--config', required=True, type=str)
     parser.add_argument('--mpv', type=float, default=125)
     parser.add_argument('--sample', type=str)
     parser.add_argument('--compressionLevel', type=int, default=9)
@@ -103,9 +102,6 @@ if __name__ == "__main__":
     parser.add_argument('--particleFile', type=str,
                         default=f"{os.environ['ANALYSIS_PATH']}/config/pdg_name_type_charge.txt")
     args = parser.parse_args()
-
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
 
     ROOT.gROOT.SetBatch(True)
     ROOT.gROOT.ProcessLine(".include "+ os.environ['ANALYSIS_PATH'])
