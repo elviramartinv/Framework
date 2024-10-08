@@ -14,7 +14,7 @@ import AnaProd.HH_bbtautau.baseline as HHBaseline
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
     jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore_v3", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
-        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagRobustParTAK4B, Jet_idx[Jet_bCand_CCLUB])')
+        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagPNetB, Jet_idx[Jet_bCand_CCLUB])')
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
