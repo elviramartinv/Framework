@@ -192,6 +192,44 @@ HBBCand GetGenHBBCandidate(int evt, const RVecI& GenPart_pdgId, const RVecVecI& 
   }
 }
 
+std::vector<bool> GetGenHBBMatch(int evt, const RVecI& GenPart_pdgId, const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
+                    const RVecF& GenPart_pt, const RVecF& GenPart_eta, const RVecF& GenPart_phi, const RVecF& GenPart_mass,
+                    const RVecLV& GenJet_p4, float deltaR_thr)
+{
+    std::vector<bool> match_results(GenJet_p4.size(), false);
+    try
+    {
+        int const Hbb_index = GetGenHBBIndex(evt, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags);
+        
+        const RVecI& b_from_H = GenPart_daughters.at(Hbb_index);
+        const int first = GenPart_pt[b_from_H[0]] > GenPart_pt[b_from_H[1]] ? 0 : 1;
+        const int second = (first + 1) % 2;
+
+        int b1_idx = b_from_H.at(first);
+        int b2_idx = b_from_H.at(second);
+
+        auto b1_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b1_idx);
+        auto b2_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b2_idx);
+
+        int match_b1 = FindMatching(b1_p4, GenJet_p4, deltaR_thr);
+        // std::cout << "match_b1 " << match_b1 << std::endl;
+        int match_b2 = FindMatching(b2_p4, GenJet_p4, deltaR_thr);
+        // std::cout << "match_b2 " << match_b2 << std::endl;
+
+        if (match_b1 != -1 && match_b2 != -1 && match_b1 != match_b2) {
+            match_results[match_b1] = true;
+            match_results[match_b2] = true;
+        }
+    }
+    catch (analysis::exception& e)
+    {
+        // return false;
+    }
+
+    return match_results;
+}
+
+
 std::shared_ptr<HTTCand<2>> GetGenHTTCandidate(int evt, const RVecI& GenPart_pdgId,
                                                const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
                                                const RVecF& GenPart_pt, const RVecF& GenPart_eta,
@@ -282,6 +320,7 @@ int GetGenHBBIndex(int evt, const RVecI& GenPart_pdgId,
         int n_b_daughters = std::count_if(daughters.begin(), daughters.end(), [&](int idx) {
         return std::abs(GenPart_pdgId.at(idx)) == PdG::b();
         });
+        // std::cout << "Higgs index: " << n << ", n_b_daughters: " << n_b_daughters << std::endl;
         if(n_b_daughters == 0) continue;
         if(n_b_daughters != 2)
         throw analysis::exception("Invalid H->bb decay. n_b_daughters = %1%, higgs_idx = %2%")
