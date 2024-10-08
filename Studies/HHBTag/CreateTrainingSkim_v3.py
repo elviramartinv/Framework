@@ -14,7 +14,7 @@ import AnaProd.HH_bbtautau.baseline as HHBaseline
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
     jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore_v3", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
-        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagPNetB, Jet_idx[Jet_bCand_CCLUB])')
+        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagRobustParTAK4B, Jet_idx[Jet_bCand_CCLUB])')
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
@@ -37,7 +37,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     df = HHBaseline.PassGenAcceptance(df)
     df = HHBaseline.GenJetSelection(df)
-    df = HHBaseline.GenJetHttOverlapRemoval_CCLUB(df)
+    df = HHBaseline.GenJetHttOverlapRemoval(df)
 
     df = HHBaseline.RecoJetSelection_CCLUB(df)
 
@@ -75,6 +75,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
     colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
+    colToSave+=["genHbbIdx", "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_statusFlags", "GenJet_partonFlavour", "GenPart_phi"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)
