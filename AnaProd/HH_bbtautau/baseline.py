@@ -35,10 +35,10 @@ def GenJetHttOverlapRemoval(df):
         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
-def GenJetHttOverlapRemoval_CCLUB(df):
-    for var in ["GenJet", "GenJetAK8"]:
-        df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{dau1_p4, dau2_p4}},}}, 2, 0.5)" )
-    return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
+# def GenJetHttOverlapRemoval_CCLUB(df):
+#     for var in ["GenJet", "GenJetAK8"]:
+#         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{dau1_p4, dau2_p4}},}}, 2, 0.5)" )
+#     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def RequestOnlyResolvedGenJets(df):
     return df.Filter("GenJet_idx[GenJet_B2].size()==2", "Resolved topology")

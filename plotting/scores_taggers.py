@@ -45,19 +45,19 @@ GGF_2022_v2 = "2022_GluGlutoHHto2B2Tau_SM_v2.root"
 
 samples_colors = ['#900C3F']
 # samples_colors = ['#900C3F', '#EAA850', '#EA5750']
-samples = [VBF_2022, VBF_2022_v2]
-# samples = [GGF_2022, GGF_2022_v2]
-sample_name = "VBF_2022"
-# sample_name = "GGF_2022"
+# samples = [VBF_2022, VBF_2022_v2]
+samples = [GGF_2022, GGF_2022_v2]
+# sample_name = "VBF_2022"
+sample_name = "GGF_2022"
 # label = ['HH nonres SM', 'TT dl', 'DY']
 signal_colors = ['#900C3F', '#50EAA8', '#50B4EA', '#5083EA', '#8F50EA', '#EA5096']
 # signal_samples = [nonres, res_250, res_500, res_1000, res_1500, res_3000]
 # signal_label = ['nonres', 'res_250', 'res_500', 'res_1000', 'res_1500', 'res_3000']
 
-taggers = ["HHBtagScore", "btagPNetB", "btagDeepFlavB", "btagRobustParTAK4B"]
+taggers = ["HHBtagScore_v3", "btagPNetB", "btagDeepFlavB", "btagRobustParTAK4B"]
 taggers_v2 = ["HHBtagScore_v2"]
 tagger_colors = {
-    "HHBtagScore": "#900C3F",
+    "HHBtagScore_v3": "#900C3F",
     "btagPNetB": "#EAA850",
     "btagDeepFlavB": "#50EAA8",
     "btagRobustParTAK4B": "#50B4EA",
@@ -66,7 +66,7 @@ tagger_colors = {
 
 legend_elements = []
 num_bins = 40
-bin_edges = np.linspace(0, 2, num_bins+1)
+bins = np.linspace(0, 2, 41)
 
 for sample in samples:
     if "_v2" in sample:
@@ -109,15 +109,24 @@ for sample in samples:
         df1 = df1.Define('RecoJet_idx', 'CreateIndexes(RecoJet_pt.size())')
         df1 = df1.Define(f'idx_jets_{tag}', f'ReorderObjects(RecoJet_{tag}, RecoJet_idx)')
         df1 = df1.Define(f"FirstJet_{tag}", f"RecoJet_{tag}[idx_jets_{tag}[0]]")
-        hist = df1.Histo1D(f"FirstJet_{tag}")
-        hist_np = np.array([hist.GetBinContent(i) for i in range(1, hist.GetNbinsX()+1)])
-        x = np.array([hist.GetBinCenter(i) for i in range(1, hist.GetNbinsX()+1)])
-        num_events = df1.Count().GetValue()
-        # print("num_events", num_events)
-        hist_np = hist_np / num_events
+        scores = df1.AsNumpy([f"FirstJet_{tag}"])
+        score_values = scores[f"FirstJet_{tag}"]
+        if tag == "btagRobustParTAK4B":
+            high_scores = score_values[score_values > 0.99999]
+            print(f"Valores de 'FirstJet_{tag}' mayores a 0.8:")
+
+            # Encontrar el bin correspondiente para cada valor mayor a 0.8
+            for score in high_scores:
+                # Obtener el bin correspondiente
+                bin_index = np.digitize(score, bins) - 1  # np.digitize devuelve índices a partir de 1
+                if 0 <= bin_index < len(bins) - 1:  # Asegurarse de que el índice esté en el rango correcto
+                    print(f"Score: {score}, Bin: {bins[bin_index]} - {bins[bin_index + 1]}")
+
+
         color = tagger_colors[tag]
-        plt.hist(x, weights=hist_np, bins=bin_edges, alpha=0.2, histtype='stepfilled', color=color, label=f"{tag}")
-        plt.hist(x, weights=hist_np, bins=bin_edges, alpha=1, histtype='step', color=color)
+
+        plt.hist(scores[f"FirstJet_{tag}"], bins=bins, alpha=0.2, histtype='stepfilled', color=color, label=f'{tag}')
+        plt.hist(scores[f"FirstJet_{tag}"], bins=bins, alpha=1, histtype='step', color=color, label=f'{tag}')
         legend_label = "HHBtagScore_v3" if tag == "HHBtagScore" else tag
         if legend_label not in [elem.get_label() for elem in legend_elements]:
             legend_elements.append(Patch(facecolor=color, edgecolor=color, alpha=1, linewidth=2, label=legend_label))
@@ -132,7 +141,7 @@ plt.xlim(-0.2,2.2)
 plt.legend(handles=legend_elements, loc='upper right')
 plt.savefig(f"output/{sample_name}/scores/firstjet_scores.png", dpi=300)
 
-# raise RuntimeError("Stop here")
+raise RuntimeError("Stop here")
 
 ################# second jet
 plt.figure()
@@ -149,14 +158,10 @@ for sample in samples:
         df = df.Define('RecoJet_idx', 'CreateIndexes(RecoJet_pt.size())')
         df = df.Define(f'idx_jets_{tag}', f'ReorderObjects(RecoJet_{tag}, RecoJet_idx)')
         df = df.Define(f"SecondJet_{tag}", f"RecoJet_{tag}[idx_jets_{tag}[1]]")
-        hist = df.Histo1D(f"SecondJet_{tag}")
-        hist_np = np.array([hist.GetBinContent(i) for i in range(1, hist.GetNbinsX()+1)])
-        x = np.array([hist.GetBinCenter(i) for i in range(1, hist.GetNbinsX()+1)])
-        num_events = df.Count().GetValue()
-        hist_np = hist_np / num_events
+        scores = df.AsNumpy([f"SecondJet_{tag}"])
         color = tagger_colors[tag]
-        plt.hist(x, weights=hist_np, bins=20, alpha=0.2, histtype='stepfilled', color=color, label=f"{tag}")
-        plt.hist(x, weights=hist_np, bins=20, alpha=1, histtype='step', color=color)
+        plt.hist(scores[f"SecondJet_{tag}"], bins=bins, alpha=0.2, histtype='stepfilled', color=color, label=f'{tag}')
+        plt.hist(scores[f"SecondJet_{tag}"], bins=bins, alpha=1, histtype='step', color=color, label=f'{tag}')
         # legend_elements = [Patch(facecolor=tagger_colors[tag], edgecolor=tagger_colors[tag], alpha=1, linewidth=2, label=tag) for tag in taggers]
         legend_label = "HHBtagScore_v3" if tag == "HHBtagScore" else tag
         if legend_label not in [elem.get_label() for elem in legend_elements]:
@@ -185,14 +190,10 @@ for sample in samples:
         df = df.Define('RecoJet_idx', 'CreateIndexes(RecoJet_pt.size())')
         df = df.Define(f'idx_jets_{tag}', f'ReorderObjects(RecoJet_{tag}, RecoJet_idx)')
         df = df.Define(f"ThirdJet_{tag}", f"RecoJet_{tag}[idx_jets_{tag}[2]]")
-        hist = df.Histo1D(f"ThirdJet_{tag}")
-        hist_np = np.array([hist.GetBinContent(i) for i in range(1, hist.GetNbinsX()+1)])
-        x = np.array([hist.GetBinCenter(i) for i in range(1, hist.GetNbinsX()+1)])
-        num_events = df.Count().GetValue()
-        hist_np = hist_np / num_events
+        scores = df.AsNumpy([f"ThirdJet_{tag}"])
         color = tagger_colors[tag]
-        plt.hist(x, weights=hist_np, bins=20, alpha=0.2, histtype='stepfilled', color=color, label=f"{tag}")
-        plt.hist(x, weights=hist_np, bins=20, alpha=1, histtype='step', color=color)
+        plt.hist(scores[f"ThirdJet_{tag}"], bins=bins, alpha=0.2, histtype='stepfilled', color=color, label=f'{tag}')
+        plt.hist(scores[f"ThirdJet_{tag}"], bins=bins, alpha=1, histtype='step', color=color, label=f'{tag}')
         legend_label = "HHBtagScore_v3" if tag == "HHBtagScore" else tag
         if legend_label not in [elem.get_label() for elem in legend_elements]:
             legend_elements.append(Patch(facecolor=color, edgecolor=color, alpha=1, linewidth=2, label=legend_label))
@@ -220,14 +221,10 @@ for sample in samples:
         df = df.Define('RecoJet_idx', 'CreateIndexes(RecoJet_pt.size())')
         df = df.Define(f'idx_jets_{tag}', f'ReorderObjects(RecoJet_{tag}, RecoJet_idx)')
         df = df.Define(f"FourthJet_{tag}", f"RecoJet_{tag}[idx_jets_{tag}[3]]")
-        hist = df.Histo1D(f"FourthJet_{tag}")
-        hist_np = np.array([hist.GetBinContent(i) for i in range(1, hist.GetNbinsX()+1)])
-        x = np.array([hist.GetBinCenter(i) for i in range(1, hist.GetNbinsX()+1)])
-        num_events = df.Count().GetValue()
-        hist_np = hist_np / num_events
+        scores = df.AsNumpy([f"FourthJet_{tag}"])
         color = tagger_colors[tag]
-        plt.hist(x, weights=hist_np, bins=20, alpha=0.2, histtype='stepfilled', color=color, label=f"{tag}")
-        plt.hist(x, weights=hist_np, bins=20, alpha=1, histtype='step', color=color)
+        plt.hist(scores[f"FourthJet_{tag}"], bins=bins, alpha=0.2, histtype='stepfilled', color=color, label=f'{tag}')
+        plt.hist(scores[f"FourthJet_{tag}"], bins=bins, alpha=1, histtype='step', color=color, label=f'{tag}')
         legend_label = "HHBtagScore_v3" if tag == "HHBtagScore" else tag
         if legend_label not in [elem.get_label() for elem in legend_elements]:
             legend_elements.append(Patch(facecolor=color, edgecolor=color, alpha=1, linewidth=2, label=legend_label))

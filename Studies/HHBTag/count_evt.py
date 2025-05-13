@@ -1,17 +1,18 @@
 import ROOT
 import os
 
-path = "/eos/user/e/emartinv/HHBtag_Training/training_skims_Run3/"
+# path = "/"
+path = "/eos/user/e/emartinv/HHBtag_Training/training_skims_Run3_PNet/"
 patron = "*.root"
 
-# f = "training_skim/GluGluToRadionToHHTo2B2Tau_M-270.root"
+f = "/eos/user/e/emartinv/HHBtag_Training/training_skims_Run3_PNet/2022EE_GluGlutoHHto2B2Tau_6.root"
 
 evt = 0
-#evt_f = 0
-#f_root = ROOT.TFile(f)
-#tree_f = f_root.Get("Event")
-#events_f = tree_f.GetEntries()
-#evt_f += events_f
+evt_f = 0
+f_root = ROOT.TFile(f)
+tree_f = f_root.Get("Event")
+events_f = tree_f.GetEntries()
+evt_f += events_f
 
 for archivo in os.listdir(path):
     if archivo.endswith(".root"):
@@ -22,4 +23,4 @@ for archivo in os.listdir(path):
         evt += events
 
 print("total events:", evt)
-#print("total events:", evt_f)
+print("total events merged file:", evt_f)

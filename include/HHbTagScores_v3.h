@@ -10,10 +10,10 @@ inline int PeriodToHHbTagInput (Period period)
         { Period::Run2_2016, 2016 },
         { Period::Run2_2017, 2017 },
         { Period::Run2_2018, 2018 },
-        { Period::Run3_2022, 1 },
-        { Period::Run3_2022EE, 2 },
-        { Period::Run3_2023, 3 },
-        { Period::Run3_2023BPix, 4 }
+        { Period::Run3_2022, 0 },
+        { Period::Run3_2022EE, 1 },
+        { Period::Run3_2023, 2 },
+        { Period::Run3_2023BPix, 3 }
     };
     auto iter = periodHHBtag.find(period);
     if (iter == periodHHBtag.end()) {

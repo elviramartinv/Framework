@@ -12,26 +12,45 @@ import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
-    jetVar_list = [ "pt", "eta", "phi", "mass", "HHBtagScore_v3", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+    jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "partonFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
         df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagPNetB, Jet_idx[Jet_bCand_CCLUB])')
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
     
-    genjetVar_list = ["pt","eta","phi","mass","hadronFlavour"]
+    genjetVar_list = ["pt","eta","phi","mass"]
     def GenJetSavingCondition(df):
         for genvar in genjetVar_list:
             df = df.Define(f"genjet_{genvar}",f"Take(GenJet_{genvar}, GenJet_idx)")
         return df
 
-    Baseline.Initialize(True, True)
+    Baseline.Initialize(True, False)
 
     df = ROOT.RDataFrame("Events", inFile)
     # df = df.Range(100)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
     df = Baseline.DefineGenObjects(df, isHH=True, Hbb_AK4mass_mpv=mpv)
+
+    # counts
+    # print("count at the beginning", df.Count().GetValue())
+    # n2_GenJet_PF = df.Filter("Sum(GenJet_b_PF) == 2").Count()
+    # print("n2_GenJet_PF", n2_GenJet_PF.GetValue())
+    # not2_GenJet_PF = df.Filter("Sum(GenJet_b_PF) != 2").Count()
+    # print("not2_GenJet_PF", not2_GenJet_PF.GetValue())
+    # morethan2_GenJet_PF = df.Filter("Sum(GenJet_b_PF) > 2").Count()
+    # print("morethan2_GenJet_PF", morethan2_GenJet_PF.GetValue())
+    # n2_GenJet_true = df.Filter("Sum(GenJet_b_true) == 2").Count()
+    # print("n2_GenJet_true", n2_GenJet_true.GetValue())
+    # not2_GenJet_true = df.Filter("Sum(GenJet_b_true) != 2").Count()
+    # print("not2_GenJet_true", not2_GenJet_true.GetValue())
+    # same_Hbb_and_Hbb_PF = df.Filter("Sum(GenJet_Hbb == GenJet_Hbb_PF) == 2").Count()
+    # print("same_Hbb_and_Hbb_PF", same_Hbb_and_Hbb_PF.GetValue())
+    # not_same_Hbb_and_Hbb_PF = df.Filter("Sum(GenJet_Hbb != GenJet_Hbb_PF) > 0").Count()
+    # print("not_same_Hbb_and_Hbb_PF", not_same_Hbb_and_Hbb_PF.GetValue())
+    # df = df.Filter("Sum(GenJet_Hbb == GenJet_Hbb_PF) == 2")
+    # df = df.Filter("Sum(GenJet_Hbb != GenJet_Hbb_PF) > 0")
 
     # print("count at the beginning", df.Count().GetValue())
     df = df.Define("n_GenJet", "GenJet_idx.size()")
@@ -47,7 +66,8 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-    df = df.Define(f"Jet_HHBtagScore_v3", "GetHHBtagScore_v3(Jet_bCand_CCLUB, Jet_idx, Jet_p4, Jet_btagPNetB, MET_pt,  MET_phi, dau1_p4, dau1_pt, dau2_p4, dau2_pt, period, event, pairType)")
+    # df = df.Define(f"Jet_HHBtagScore_v3", "GetHHBtagScore_v3(Jet_bCand_CCLUB, Jet_idx, Jet_p4, Jet_btagPNetB, MET_pt,  MET_phi, dau1_p4, dau1_pt, dau2_p4, dau2_pt, period, event, pairType)")
+
 
     df = df.Define("HttCandidate_leg0_pt", "dau1_pt")
     df = df.Define("HttCandidate_leg0_eta", "dau1_eta")
@@ -59,7 +79,10 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
     df = df.Define("HttCandidate_leg1_mass", "dau2_mass")
     df = df.Define("channel", "pairType")
 
+    # df = df.Define("dR_jet_part", 'ROOT::Math::VectorUtil::DeltaR(GenJet_p4, GenPart_p4)')
+
     n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
+
     df = JetSavingCondition(df)
     df = GenJetSavingCondition(df)
 
@@ -74,8 +97,10 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
-    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
+    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb_PF", "GenJetAK8_Hbb", "GenJet_idx", "GenJet_Hbb", "GenJet_b_true"]
     colToSave+=["genHbbIdx", "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_statusFlags", "GenJet_partonFlavour", "GenPart_phi"]
+    # colToSave+=["FirstGenHBBMatch", "SecondGenHBBMatch"]
+    colToSave+=["deltaR_values", "match_info"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)

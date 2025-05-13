@@ -12,14 +12,14 @@ import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, version, config, snapshotOptions):
-    jetVar_list = [ "pt", "eta", "phi", "mass", f"HHBtagScore_v{version}", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "hadronFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+    jetVar_list = [ "pt", "eta", "phi", "mass", f"HHBtagScore_v{version}", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
         df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagDeepFlavB, Jet_idx[Jet_bCand])')
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
     
-    genjetVar_list = ["pt","eta","phi","mass","hadronFlavour"]
+    genjetVar_list = ["pt","eta","phi","mass"]
     def GenJetSavingCondition(df):
         for genvar in genjetVar_list:
             df = df.Define(f"genjet_{genvar}",f"Take(GenJet_{genvar}, GenJet_idx)")
@@ -96,7 +96,8 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
-    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx"]
+    colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb" , "GenJetAK8_Hbb", "GenJet_idx", "GenJet_eta", "GenJet_B2"]
+    colToSave+=["Jet_selIdx", "Jet_idx", "Jet_bCand"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)

@@ -74,10 +74,21 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
         df = df.Define(f"{var}_idx", f"CreateIndexes({var}_pt.size())")
         df = df.Define(f"{var}_p4", f"GetP4({var}_pt,{var}_eta,{var}_phi,{var}_mass, {var}_idx)")
 
+    df = df.Define("GenJet_b_true", """GetGenHBBMatch(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)""")
+    
+    df = df.Define("GenHBBMatchIndex", "GetGenHBBMatchIndices(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)")
+    df = df.Define("FirstGenHBBMatch", "GenHBBMatchIndex.first")
+    df = df.Define("SecondGenHBBMatch", "GenHBBMatchIndex.second")
+
     df = df.Define("GenJet_b_PF", "abs(GenJet_partonFlavour)==5")
     df = df.Define("GenJetAK8_b_PF", "abs(GenJetAK8_partonFlavour)==5")
-    df = df.Define("GenJet_Hbb",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_PF)")
+    df = df.Define("GenJet_Hbb_PF",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_PF)")
+    df = df.Define("GenJet_Hbb",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_true)")
     df = df.Define("GenJetAK8_Hbb", "FindGenJetAK8(GenJetAK8_mass, GenJetAK8_b_PF)")
+
+    df = df.Define("DeltaR_and_match", """GetDeltaRValues(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)""")
+    df = df.Define("deltaR_values", "DeltaR_and_match.first")
+    df = df.Define("match_info", "DeltaR_and_match.second")
 
     return df
 

@@ -192,11 +192,11 @@ HBBCand GetGenHBBCandidate(int evt, const RVecI& GenPart_pdgId, const RVecVecI& 
   }
 }
 
-std::vector<bool> GetGenHBBMatch(int evt, const RVecI& GenPart_pdgId, const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
+ROOT::VecOps::RVec<bool> GetGenHBBMatch(int evt, const RVecI& GenPart_pdgId, const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
                     const RVecF& GenPart_pt, const RVecF& GenPart_eta, const RVecF& GenPart_phi, const RVecF& GenPart_mass,
                     const RVecLV& GenJet_p4, float deltaR_thr)
 {
-    std::vector<bool> match_results(GenJet_p4.size(), false);
+    ROOT::VecOps::RVec<bool> match_results(GenJet_p4.size(), false);
     try
     {
         int const Hbb_index = GetGenHBBIndex(evt, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags);
@@ -227,6 +227,113 @@ std::vector<bool> GetGenHBBMatch(int evt, const RVecI& GenPart_pdgId, const RVec
     }
 
     return match_results;
+}
+
+
+std::pair<ROOT::VecOps::RVec<float>, ROOT::VecOps::RVec<bool>> GetDeltaRValues(int evt, const RVecI& GenPart_pdgId, const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
+                                                                               const RVecF& GenPart_pt, const RVecF& GenPart_eta, const RVecF& GenPart_phi, const RVecF& GenPart_mass,
+                                                                               const RVecLV& GenJet_p4, float deltaR_thr)
+{
+    ROOT::VecOps::RVec<float> deltaR_values;
+    ROOT::VecOps::RVec<bool> match_info;
+    try
+    {
+        int const Hbb_index = GetGenHBBIndex(evt, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags);
+        
+        const RVecI& b_from_H = GenPart_daughters.at(Hbb_index);
+        const int first = GenPart_pt[b_from_H[0]] > GenPart_pt[b_from_H[1]] ? 0 : 1;
+        const int second = (first + 1) % 2;
+
+        int b1_idx = b_from_H.at(first);
+        int b2_idx = b_from_H.at(second);
+
+        auto b1_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b1_idx);
+        auto b2_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b2_idx);
+
+        for (size_t i = 0; i < GenJet_p4.size(); ++i)
+        {
+            float deltaR_b1 = ROOT::Math::VectorUtil::DeltaR(b1_p4, GenJet_p4[i]);
+            float deltaR_b2 = ROOT::Math::VectorUtil::DeltaR(b2_p4, GenJet_p4[i]);
+            bool match_b1 = deltaR_b1 < deltaR_thr;
+            bool match_b2 = deltaR_b2 < deltaR_thr;
+            deltaR_values.push_back(deltaR_b1);
+            deltaR_values.push_back(deltaR_b2);
+            match_info.push_back(match_b1);
+            match_info.push_back(match_b2);
+        }
+    }
+    catch (analysis::exception& e)
+    {
+        // handle exception
+    }
+
+    return std::make_pair(deltaR_values, match_info);
+}
+
+
+
+std::pair<ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>> GetGenHBBMatchIndices(int evt, const RVecI& GenPart_pdgId, const RVecVecI& GenPart_daughters, const RVecI& GenPart_statusFlags,
+                    const RVecF& GenPart_pt, const RVecF& GenPart_eta, const RVecF& GenPart_phi, const RVecF& GenPart_mass,
+                    const RVecLV& GenJet_p4, float deltaR_thr)
+{
+    ROOT::VecOps::RVec<int> genJet_indices;
+    ROOT::VecOps::RVec<int> genPart_indices;
+    try
+    {
+        int const Hbb_index = GetGenHBBIndex(evt, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags);
+        
+        const RVecI& b_from_H = GenPart_daughters.at(Hbb_index);
+        const int first = GenPart_pt[b_from_H[0]] > GenPart_pt[b_from_H[1]] ? 0 : 1;
+        const int second = (first + 1) % 2;
+
+        int b1_idx = b_from_H.at(first);
+        int b2_idx = b_from_H.at(second);
+
+        auto b1_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b1_idx);
+        auto b2_p4 = GetP4(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, b2_idx);
+
+        int match_b1 = FindMatching(b1_p4, GenJet_p4, deltaR_thr);
+        int match_b2 = FindMatching(b2_p4, GenJet_p4, deltaR_thr);
+
+        if (match_b1 != -1 && match_b2 != -1 && match_b1 != match_b2) {
+            genJet_indices.push_back(match_b1);
+            genJet_indices.push_back(match_b2);
+            genPart_indices.push_back(b1_idx);
+            genPart_indices.push_back(b2_idx);
+        }
+    }
+    catch (analysis::exception& e)
+    {
+        // handle exception
+    }
+
+    return std::make_pair(genJet_indices, genPart_indices);
+}
+
+float GetMinDeltaRGenJetsB(const ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float>>& b1_p4, 
+                           const ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float>>& b2_p4, 
+                           const ROOT::VecOps::RVec<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float>>>& GenJet_p4)
+{
+    float min_dR = std::numeric_limits<float>::max(); // Inicializamos con un valor muy grande.
+
+    // Iteramos sobre todos los GenJets
+    for (int i = 0; i < GenJet_p4.size(); ++i) {
+        // Calculamos el DeltaR entre el GenJet y b1
+        float dR_b1 = ROOT::Math::VectorUtil::DeltaR(b1_p4, GenJet_p4[i]);
+
+        // Calculamos el DeltaR entre el GenJet y b2
+        float dR_b2 = ROOT::Math::VectorUtil::DeltaR(b2_p4, GenJet_p4[i]);
+
+        // Tomamos el mínimo DeltaR entre b1 y b2 con el GenJet actual
+        float dR_min_current = std::min(dR_b1, dR_b2);
+
+        // Actualizamos el mínimo DeltaR si encontramos uno menor
+        if (dR_min_current < min_dR) {
+            min_dR = dR_min_current;
+        }
+    }
+
+    return min_dR; // Retornamos el DeltaR mínimo encontrado
 }
 
 

@@ -54,10 +54,10 @@ signal_colors = ['#900C3F', '#50EAA8', '#50B4EA', '#5083EA', '#8F50EA', '#EA5096
 # signal_samples = [nonres, res_250, res_500, res_1000, res_1500, res_3000]
 # signal_label = ['nonres', 'res_250', 'res_500', 'res_1000', 'res_1500', 'res_3000']
 
-taggers = ["HHBtagScore", "btagPNetB", "btagDeepFlavB", "btagRobustParTAK4B"]
+taggers = ["HHBtagScore_v3", "btagPNetB", "btagDeepFlavB", "btagRobustParTAK4B"]
 taggers_v2 = ["HHBtagScore_v2"]
 tagger_colors = {
-    "HHBtagScore": "#900C3F",
+    "HHBtagScore_v3": "#900C3F",
     "btagPNetB": "#EAA850",
     "btagDeepFlavB": "#50EAA8",
     "btagRobustParTAK4B": "#50B4EA",
@@ -65,7 +65,7 @@ tagger_colors = {
 }
 
 tagger_legend_names = {
-    "HHBtagScore": "HHBtagScore_v3",
+    "HHBtagScore_v3": "HHBtagScore_v3",
     "btagPNetB": "btagPNetB",
     "btagDeepFlavB": "btagDeepFlavB",
     "btagRobustParTAK4B": "btagRobustParTAK4B",
