@@ -33,6 +33,11 @@ struct HBBCand
   LorentzVectorM cand_p4;
 };
 
+struct VBFJetCand {
+    static constexpr size_t n_legs = 2; 
+    std::array<int, n_legs> leg_index = {-1, -1};  
+    std::array<LorentzVectorM, n_legs> leg_p4;     
+};
 
 template<size_t N>
 struct HTTCand {

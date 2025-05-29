@@ -5,7 +5,7 @@ from .Utilities import *
 initialized = False
 
 ana_reco_object_collections = {
-    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "SubJet", "dau1", "dau2" ],
+    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "SubJet", "dau1", "dau2" ],
     "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "DeepMETResponseTune",
              "DeepMETResolutionTune", "SubJet" ],
 }
@@ -51,7 +51,7 @@ def applyMETFlags(df, MET_flags):
     MET_flags_string = ' && '.join(MET_flags)
     return df.Filter(MET_flags_string, "MET filters")
 
-def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suffix='nano'):
+def DefineGenObjects(df, isData=False, isHH=False, isVBF=False, Hbb_AK4mass_mpv=125., p4_suffix='nano'):
     if isData:
         df = df.Define("genLeptons", "std::vector<reco_tau::gen_truth::GenLepton>()")
     else:
@@ -70,15 +70,21 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
         df = df.Define("genHttCandidate", """GetGenHTTCandidate(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, false)""")
         df = df.Define("genHbbIdx", """GetGenHBBIndex(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags)""")
         df = df.Define("genHbb_isBoosted", "GenPart_pt[genHbbIdx]>550")
+
     for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
         df = df.Define(f"{var}_idx", f"CreateIndexes({var}_pt.size())")
         df = df.Define(f"{var}_p4", f"GetP4({var}_pt,{var}_eta,{var}_phi,{var}_mass, {var}_idx)")
-
+    
     df = df.Define("GenJet_b_true", """GetGenHBBMatch(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)""")
     
     df = df.Define("GenHBBMatchIndex", "GetGenHBBMatchIndices(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)")
-    df = df.Define("FirstGenHBBMatch", "GenHBBMatchIndex.first")
-    df = df.Define("SecondGenHBBMatch", "GenHBBMatchIndex.second")
+    df = df.Define("GenJetHBB_Match_Idx", "GenHBBMatchIndex.first")
+    df = df.Define("GenPartHBB_Match_Idx", "GenHBBMatchIndex.second")
+
+    if isVBF:
+        df = df.Define("LHEPartVBFJetsIdx", """GetLHEPartVBFJetsIndex(event, LHEPart_pdgId, LHEPart_status)""")
+        df = df.Define("GenVBFJetsMatch", """GetGenVBFJetsMatch(event, LHEPart_pdgId, LHEPart_status, 
+                       LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, GenJet_p4, 0.4)""")
 
     df = df.Define("GenJet_b_PF", "abs(GenJet_partonFlavour)==5")
     df = df.Define("GenJetAK8_b_PF", "abs(GenJetAK8_partonFlavour)==5")
@@ -92,12 +98,12 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
 
     return df
 
-def SelectRecoP4(df, syst_name='nano', nano_version="v12"):
+def SelectRecoP4(df, syst_name='nano', nano_version="v14"):
     for obj in ana_reco_object_collections[nano_version]:
         df = df.Define(f"{obj}_p4", f"{obj}_p4_{syst_name}")
     return df
 
-def CreateRecoP4(df, suffix='nano', nano_version="v12"):
+def CreateRecoP4(df, suffix='nano', nano_version="v14"):
     if len(suffix) > 0:
         suffix = "_" + suffix
     if("TrigObj_pt" in df.GetColumnNames()):

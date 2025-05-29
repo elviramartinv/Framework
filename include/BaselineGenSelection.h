@@ -446,6 +446,51 @@ int GetGenHBBIndex(int evt, const RVecI& GenPart_pdgId,
     }
 }
 
+ROOT::VecOps::RVec<int> GetLHEPartVBFJetsIndex(int evt, const RVecI& LHEPart_pdgId, const RVecI& LHEPart_status) {
+    ROOT::VecOps::RVec<int> vbf_indices;
+
+    for (size_t i = 0; i < LHEPart_pdgId.size(); ++i) {
+        if (LHEPart_status[i] == 1 && std::abs(LHEPart_pdgId[i]) != PdG::b() && std::abs(LHEPart_pdgId[i]) != PdG::Higgs()) {
+            vbf_indices.push_back(i);
+        }
+    }
+    
+    if (vbf_indices.size() < 2) {
+        throw analysis::exception("GetLHEPartVBFJetsIndex (event=%1%): VBF jets not found") % evt;
+    }
+
+    return vbf_indices;
+}
+
+
+ROOT::VecOps::RVec<bool> GetGenVBFJetsMatch(int evt, const RVecI& LHEPart_pdgId, const RVecI& LHEPart_status,
+                    const RVecF& LHEPart_pt, const RVecF& LHEPart_eta, const RVecF& LHEPart_phi, const RVecF& LHEPart_mass,
+                    const RVecLV& GenJet_p4, float deltaR_thr)
+{
+    ROOT::VecOps::RVec<bool> match_results(GenJet_p4.size(), false);
+    
+    try
+    {
+        ROOT::VecOps::RVec<int> vbf_indices = GetLHEPartVBFJetsIndex(evt, LHEPart_pdgId, LHEPart_status);
+
+        for (int idx : vbf_indices) {
+            auto vbf_p4 = GetP4(LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, idx);
+            int match = FindMatching(vbf_p4, GenJet_p4, deltaR_thr);
+
+            if (match != -1) {
+                match_results[match] = true;
+            }
+        }
+    }
+    catch (analysis::exception& e)
+    {
+        throw analysis::exception("GetGenVBFJetsMatch (event=%1%): %2%") % evt % e.message();
+    }
+
+    return match_results;
+}
+
+
 bool PassGenAcceptance(const HTTCand<2>& HTT_Cand){
     for(size_t i = 0; i < HTT_Cand.leg_p4.size(); ++i){
         if(!(HTT_Cand.leg_p4.at(i).pt()>20 && std::abs(HTT_Cand.leg_p4.at(i).eta())<2.3 )){

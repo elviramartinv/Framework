@@ -185,6 +185,78 @@ std::optional<HbbCand> GetHbbCandidate(const RVecF& HHbTagScores, const RVecB& J
   }
   return std::nullopt;
 }
+
+RVecI GenRecoVBFJetMatching(int event, const RVecI& Jet_idx, const RVecI& GenJet_idx,
+                            const RVecB& Jet_sel, const RVecB& GenJet_VBF_sel,
+                            const RVecLV& GenJet_p4, const RVecLV& Jet_p4, float DeltaR_thr) 
+{
+    RVecI recoVBFJetMatched(Jet_idx.size(), -1);
+    std::set<size_t> taken_jets;
+
+    for (size_t gen_idx = 0; gen_idx < GenJet_p4.size(); ++gen_idx) {
+        if (!GenJet_VBF_sel[gen_idx]) continue;  
+
+        size_t best_jet_idx = Jet_p4.size();
+        float deltaR_min = std::numeric_limits<float>::infinity();
+
+        for (size_t reco_idx = 0; reco_idx < Jet_p4.size(); ++reco_idx) {
+            if (!Jet_sel[reco_idx] || taken_jets.count(reco_idx)) continue;
+
+            float deltaR = ROOT::Math::VectorUtil::DeltaR(Jet_p4[reco_idx], GenJet_p4[gen_idx]);
+            if (deltaR < deltaR_min && deltaR < DeltaR_thr) {
+                best_jet_idx = reco_idx;
+                deltaR_min = deltaR;
+            }
+        }
+
+        if (best_jet_idx < Jet_p4.size()) {
+            taken_jets.insert(best_jet_idx);
+            recoVBFJetMatched.at(best_jet_idx) = gen_idx;
+        }
+    }
+
+    return recoVBFJetMatched;
+}
+
+std::optional<VBFJetCand> GetVBFJetCandidate(const RVecB& JetSel, const RVecLV& Jet_p4, const RVecI& Jet_idx, const RVecI& GenRecoVBFJetMatched)
+{
+    VBFJetCand VBFJetCandidate;
+    for (int j = 0; j < VBFJetCandidate.n_legs; j++) {
+        VBFJetCandidate.leg_index[j] = -1;
+    }
+
+    int leg_idx = 0;
+    for (size_t i = 0; i < Jet_idx.size(); i++) {
+        int jet_idx = Jet_idx[i];
+        if (!JetSel[jet_idx] || GenRecoVBFJetMatched[jet_idx] == -1) continue; 
+
+        VBFJetCandidate.leg_index[leg_idx] = jet_idx;
+        VBFJetCandidate.leg_p4[leg_idx] = Jet_p4.at(jet_idx);
+        leg_idx++;
+        
+        if (leg_idx == VBFJetCandidate.n_legs) break;
+    }
+
+    if (VBFJetCandidate.leg_index[0] >= 0 && VBFJetCandidate.leg_index[1] >= 0) {
+        return VBFJetCandidate;
+    }
+
+    return std::nullopt;
+}
+
+ROOT::VecOps::RVec<float> GetInvMass(const ROOT::VecOps::RVec<LorentzVectorM>& jet_p4) {
+    ROOT::VecOps::RVec<float> masses;
+    for (size_t i = 0; i < jet_p4.size(); ++i) {
+        for (size_t j = i + 1; j < jet_p4.size(); ++j) {
+            LorentzVectorM dijet_p4 = jet_p4[i] + jet_p4[j];
+            masses.push_back(dijet_p4.M());
+        }
+    }
+    return masses;
+}
+
+
+
 template<size_t N>
 LorentzVectorM GetMetNoMu(const HTTCand<N>& HttCandidate, const LorentzVectorM& Met_p4) {
   LorentzVectorM Muon_p4_sig(0.,0.,0.,0.);
