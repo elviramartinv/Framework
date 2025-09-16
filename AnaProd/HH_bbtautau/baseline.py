@@ -25,15 +25,26 @@ def PassGenAcceptance(df):
     df = df.Filter("genHttCandidate.get() != nullptr", "genHttCandidate present")
     return df.Filter("PassGenAcceptance(*genHttCandidate)", "genHttCandidate Acceptance")
 
+# def GenJetSelection(df):
+#     df = df.Define("GenJet_B1","GenJet_pt > 20 && abs(GenJet_eta) < 2.5 && GenJet_Hbb")
+#     df = df.Define("GenJetAK8_B1","GenJetAK8_pt > 170 && abs(GenJetAK8_eta) < 2.5 && GenJetAK8_Hbb")
+#     return df.Filter("GenJet_idx[GenJet_B1].size()==2 || (GenJetAK8_idx[GenJetAK8_B1].size()==1 && genHbb_isBoosted)", "(One)Two b-parton (Fat)jets at least")
+
 def GenJetSelection(df):
     df = df.Define("GenJet_B1","GenJet_pt > 20 && abs(GenJet_eta) < 2.5 && GenJet_Hbb")
-    df = df.Define("GenJetAK8_B1","GenJetAK8_pt > 170 && abs(GenJetAK8_eta) < 2.5 && GenJetAK8_Hbb")
-    return df.Filter("GenJet_idx[GenJet_B1].size()==2 || (GenJetAK8_idx[GenJetAK8_B1].size()==1 && genHbb_isBoosted)", "(One)Two b-parton (Fat)jets at least")
+    return df.Filter("GenJet_idx[GenJet_B1].size()==2", "(One)Two b-parton jets at least")
+
+
+# def GenJetHttOverlapRemoval(df):
+#     for var in ["GenJet", "GenJetAK8"]:
+#         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
+#     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def GenJetHttOverlapRemoval(df):
-    for var in ["GenJet", "GenJetAK8"]:
+    for var in ["GenJet"]:
         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
-    return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
+    return df.Filter("GenJet_idx[GenJet_B2].size()==2", "No overlap between genJets and genHttCandidates")
+
 
 # def GenJetHttOverlapRemoval_CCLUB(df):
 #     for var in ["GenJet", "GenJetAK8"]:
@@ -130,16 +141,16 @@ def RecoJetInvMass(df):
 
 def RecoJetSelection(df):
     df = df.Define("Jet_bIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 2 ) ")
-    df = df.Define("FatJet_bbIncl", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
+    # df = df.Define("FatJet_bbIncl", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
     df = df.Define("Jet_bCand", "RemoveOverlaps(Jet_p4, Jet_bIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
-    df = df.Define("FatJet_bbCand", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl, {{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
+    # df = df.Define("FatJet_bbCand", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl, {{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1]},}, 2, 0.5)")
     return df
 
 def RecoJetSelection_CCLUB(df):
-    df = df.Define("Jet_bIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 2 ) ")
-    df = df.Define("FatJet_bbIncl_CCLUB", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
+    df = df.Define("Jet_bIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 6 ) ")
+    # df = df.Define("FatJet_bbIncl_CCLUB", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
     df = df.Define("Jet_bCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_bIncl_CCLUB,{{dau1_p4, dau2_p4},}, 2, 0.5)")
-    df = df.Define("FatJet_bbCand_CCLUB", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl_CCLUB, {{dau1_p4, dau2_p4},}, 2, 0.5)")
+    # df = df.Define("FatJet_bbCand_CCLUB", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl_CCLUB, {{dau1_p4, dau2_p4},}, 2, 0.5)")
     return df
 
 def ExtraRecoJetSelection(df):
@@ -148,9 +159,11 @@ def ExtraRecoJetSelection(df):
     df = df.Define(f"ExtraJet_B1", """ RemoveOverlaps(Jet_p4, ExtraJet_B0,ObjectsToRemoveOverlap, 2, 0.5)""")
     return df
 
+# def ApplyJetSelection(df):
+#     return df.Filter("Jet_idx[Jet_bCand].size()>=2 || FatJet_idx[FatJet_bbCand].size()>=1", "Reco bjet candidates")
 
 def ApplyJetSelection(df):
-    return df.Filter("Jet_idx[Jet_bCand].size()>=2 || FatJet_idx[FatJet_bbCand].size()>=1", "Reco bjet candidates")
+    return df.Filter("Jet_idx[Jet_bCand].size()>=2", "Reco bjet candidates")
 
 def GenRecoJetMatching(df):
     df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
@@ -162,26 +175,45 @@ def GenRecoJetMatching_CCLUB(df):
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
-# def GenRecoVBFJetMatching(df):
-#     df = df.Define("Jet_genVBFJetIdx_matched", """GenRecoVBFJetMatching(event, Jet_idx, GenVBFJetsMatch, Jet_vbfCand, GenVBFJetsMatch, GenJet_p4, Jet_p4, 0.3)""")
-#     df = df.Define("Jet_genVBFMatched", "Jet_genVBFJetIdx_matched>=0")
-#     return df.Filter("Jet_genVBFJetIdx_matched[Jet_genVBFMatched].size()>=2", "Two different gen-reco VBF jet matches at least")
-
 def DefineHbbCand(df):
     df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
     df = df.Define("HbbCandidate", "GetHbbCandidate(Jet_HHBtagScore, Jet_bCand, Jet_p4, Jet_idx)")
     return df
 
+def GenVBFJetSelection(df):
+    df = df.Define("GenJet_VBF_0", "GenJet_pt > 20 && abs(GenJet_eta) < 4.7 && GenVBFJetsMatch")
+    df = df.Define("GenJet_VBF", "RemoveOverlaps(GenJet_p4, GenJet_VBF_0,{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1], genHbbCandidate.leg_p4[0], genHbbCandidate.leg_p4[1]}}, 2, 0.5)")
+    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "Two different VBF jets at least")
+
+
 def RecoVBFJetSelection(df):
-    df = df.Define("Jet_vbfIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 2 ) ")
-    df = df.Define("Jet_vbfCand", "RemoveOverlaps(Jet_p4, Jet_vbfIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1], HbbCandidate->leg_p4[0], HbbCandidate->leg_p4[1]},}, 2, 0.5)")
+    df = df.Define("Jet_vbfIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
+    df = df.Define("Jet_vbfCand", "RemoveOverlaps(Jet_p4, Jet_vbfIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1], HbbCandidate->leg_p4[0], HbbCandidate->leg_p4[1]}}, 2, 0.5)")
+    return df
+
+def RecoVBFJetSelection_CCLUB(df):
+    df = df.Define("Jet_vbfIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
+    df = df.Define("Jet_vbfCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_vbfIncl_CCLUB,{{dau1_p4, dau2_p4, bjet1_p4, bjet2_p4}}, 2, 0.5)")
     return df
 
 def GenRecoVBFJetMatching(df):
-    df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand, GenVBFJetsMatch, GenJet_p4, Jet_p4, 0.3)""")
+    df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand, GenJet_VBF, GenJet_p4, Jet_p4, 0.3)""")
     df = df.Define("Jet_vbfgenMatched", "GenRecoVBFJetMatchIdx>=0") 
-    return df.Filter("GenRecoVBFJetMatchIdx[Jet_vbfgenMatched].size()>=2", "Two different VBF candidates") # 2 VBF jets at least
+    return df.Filter("GenRecoVBFJetMatchIdx[Jet_vbfgenMatched].size()>=2", "Two different gen-reco VBF matches") # 2 VBF jets at least
+
+def GenRecoVBFJetMatching_CCLUB(df):
+    df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand_CCLUB, GenJet_VBF, GenJet_p4, Jet_p4, 0.3)""")
+    df = df.Define("Jet_vbfgenMatched", "GenRecoVBFJetMatchIdx>=0") 
+    return df.Filter("GenRecoVBFJetMatchIdx[Jet_vbfgenMatched].size()>=2", "Two different gen-reco VBF matches") # 2 VBF jets at least
 
 def DefineVBFCand(df):
     df = df.Define("VBFCand", """GetVBFJetCandidate(Jet_vbfCand, Jet_p4, Jet_idx, GenRecoVBFJetMatchIdx)""")
+    return df
+
+def DefineVBFCand_CCLUB(df):
+    df = df.Define("VBFCand", """GetVBFJetCandidate(Jet_vbfCand_CCLUB, Jet_p4, Jet_idx, GenRecoVBFJetMatchIdx)""")
+    return df
+
+def DefineisCCLUBjet(df):
+    df = df.Define("Jet_isCCLUBbjet", """GetIsCCLUBbjet(Jet_p4, bjet1_p4, bjet2_p4, 0.3)""")
     return df

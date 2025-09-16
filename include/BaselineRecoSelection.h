@@ -302,3 +302,23 @@ std::pair<bool, std::set<LegIndexPair>>  HasOOMatching(const RVecMatching& legVe
     return std::make_pair(hasMatching, offlineSelected);
 }
 
+ROOT::VecOps::RVec<bool> GetIsCCLUBbjet(const RVecLV& RecoJets_p4,
+                                        const LorentzVectorM& bjet1_p4,
+                                        const LorentzVectorM& bjet2_p4,
+                                        float dR_thr)
+{
+    ROOT::VecOps::RVec<bool> isCCLUBbjet(RecoJets_p4.size(), false);
+    const double dR2_thr = std::pow(dR_thr, 2);
+
+    for (size_t i = 0; i < RecoJets_p4.size(); ++i) {
+        const auto& reco_jet = RecoJets_p4[i];
+        double dR2_bjet1 = ROOT::Math::VectorUtil::DeltaR2(reco_jet, bjet1_p4);
+        double dR2_bjet2 = ROOT::Math::VectorUtil::DeltaR2(reco_jet, bjet2_p4);
+
+        if (dR2_bjet1 < dR2_thr || dR2_bjet2 < dR2_thr) {
+            isCCLUBbjet[i] = true;
+        }
+    }
+
+    return isCCLUBbjet;
+}

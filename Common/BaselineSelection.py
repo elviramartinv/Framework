@@ -6,8 +6,10 @@ initialized = False
 
 ana_reco_object_collections = {
     "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "SubJet", "dau1", "dau2" ],
-    "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "DeepMETResponseTune",
-             "DeepMETResolutionTune", "SubJet" ],
+    "v14": [ "Jet",  "PuppiMET", 
+             "bjet1", "bjet2", "dau1", "dau2", "fatbjet"],
+    # "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PuppiMET", 
+    #          "SubJet", "bjet1", "bjet2", "dau1", "dau2", "fatbjet" ],
 }
 deepTauVersions = {"2p1":"2017", "2p5":"2018"}
 
@@ -60,9 +62,9 @@ def DefineGenObjects(df, isData=False, isHH=False, isVBF=False, Hbb_AK4mass_mpv=
                                         GenPart_phi, GenPart_mass, GenPart_genPartIdxMother, GenPart_pdgId,
                                         GenPart_statusFlags, event)""")
 
-    for lep in ["Electron", "Muon", "Tau"]:
-        df = df.Define(f"{lep}_genMatchIdx",  f"MatchGenLepton({lep}_p4_{p4_suffix}, genLeptons, 0.2)")
-        df = df.Define(f"{lep}_genMatch",  f"GetGenLeptonMatch({lep}_genMatchIdx, genLeptons)")
+    # for lep in ["Electron", "Muon", "Tau"]:
+    #     df = df.Define(f"{lep}_genMatchIdx",  f"MatchGenLepton({lep}_p4_{p4_suffix}, genLeptons, 0.2)")
+    #     df = df.Define(f"{lep}_genMatch",  f"GetGenLeptonMatch({lep}_genMatchIdx, genLeptons)")
     if isData:
         return df
 
@@ -71,12 +73,15 @@ def DefineGenObjects(df, isData=False, isHH=False, isVBF=False, Hbb_AK4mass_mpv=
         df = df.Define("genHbbIdx", """GetGenHBBIndex(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags)""")
         df = df.Define("genHbb_isBoosted", "GenPart_pt[genHbbIdx]>550")
 
-    for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
+    # for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
+    for var in ["GenJet"]:
         df = df.Define(f"{var}_idx", f"CreateIndexes({var}_pt.size())")
         df = df.Define(f"{var}_p4", f"GetP4({var}_pt,{var}_eta,{var}_phi,{var}_mass, {var}_idx)")
     
     df = df.Define("GenJet_b_true", """GetGenHBBMatch(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)""")
     
+    df = df.Define("genHbbCandidate", """GetGenHBBCandidate(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, false)""")
+
     df = df.Define("GenHBBMatchIndex", "GetGenHBBMatchIndices(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)")
     df = df.Define("GenJetHBB_Match_Idx", "GenHBBMatchIndex.first")
     df = df.Define("GenPartHBB_Match_Idx", "GenHBBMatchIndex.second")
@@ -85,12 +90,14 @@ def DefineGenObjects(df, isData=False, isHH=False, isVBF=False, Hbb_AK4mass_mpv=
         df = df.Define("LHEPartVBFJetsIdx", """GetLHEPartVBFJetsIndex(event, LHEPart_pdgId, LHEPart_status)""")
         df = df.Define("GenVBFJetsMatch", """GetGenVBFJetsMatch(event, LHEPart_pdgId, LHEPart_status, 
                        LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, GenJet_p4, 0.4)""")
+        # if isCCLUB:
+        #     df = df.Define("isbjet")
 
     df = df.Define("GenJet_b_PF", "abs(GenJet_partonFlavour)==5")
-    df = df.Define("GenJetAK8_b_PF", "abs(GenJetAK8_partonFlavour)==5")
+    # df = df.Define("GenJetAK8_b_PF", "abs(GenJetAK8_partonFlavour)==5")
     df = df.Define("GenJet_Hbb_PF",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_PF)")
     df = df.Define("GenJet_Hbb",f"FindTwoJetsClosestToMPV({Hbb_AK4mass_mpv}, GenJet_p4, GenJet_b_true)")
-    df = df.Define("GenJetAK8_Hbb", "FindGenJetAK8(GenJetAK8_mass, GenJetAK8_b_PF)")
+    # df = df.Define("GenJetAK8_Hbb", "FindGenJetAK8(GenJetAK8_mass, GenJetAK8_b_PF)")
 
     df = df.Define("DeltaR_and_match", """GetDeltaRValues(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenJet_p4, 0.4)""")
     df = df.Define("deltaR_values", "DeltaR_and_match.first")
@@ -114,8 +121,14 @@ def CreateRecoP4(df, suffix='nano', nano_version="v14"):
     for obj in ana_reco_object_collections[nano_version]:
         if "MET" in obj:
             df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, 0., {obj}_phi, 0.)")
+        elif "PFMET" in obj:
+            df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, 0., {obj}_phi, 0.)")
+        elif "PuppiMET" in obj:
+            df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, 0., {obj}_phi, 0.)")
         elif "dau1" in obj or "dau2" in obj:
             df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, {obj}_eta, {obj}_phi, {obj}_mass)")
+        elif "bjet1" in obj or "bjet2" in obj or "fatbjet" in obj:
+            df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt_nom, {obj}_eta, {obj}_phi, {obj}_mass_nom)")
         else:
             df = df.Define(f"{obj}_idx", f"CreateIndexes({obj}_pt.size())")
             df = df.Define(f"{obj}_p4{suffix}", f"GetP4({obj}_pt, {obj}_eta, {obj}_phi, {obj}_mass, {obj}_idx)")
