@@ -5,9 +5,9 @@ from .Utilities import *
 initialized = False
 
 ana_reco_object_collections = {
-    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "MET", "PuppiMET", "SubJet", "dau1", "dau2" ],
+    "v12": [ "Jet", "FatJet", "PuppiMET", "dau1", "dau2" ],
     "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "DeepMETResponseTune",
-             "DeepMETResolutionTune", "SubJet" ],
+             "DeepMETResolutionTune"],
 }
 deepTauVersions = {"2p1":"2017", "2p5":"2018"}
 
@@ -60,9 +60,9 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
                                         GenPart_phi, GenPart_mass, GenPart_genPartIdxMother, GenPart_pdgId,
                                         GenPart_statusFlags, event)""")
 
-    for lep in ["Electron", "Muon", "Tau"]:
-        df = df.Define(f"{lep}_genMatchIdx",  f"MatchGenLepton({lep}_p4_{p4_suffix}, genLeptons, 0.2)")
-        df = df.Define(f"{lep}_genMatch",  f"GetGenLeptonMatch({lep}_genMatchIdx, genLeptons)")
+    # for lep in ["Electron", "Muon", "Tau"]:
+    #     df = df.Define(f"{lep}_genMatchIdx",  f"MatchGenLepton({lep}_p4_{p4_suffix}, genLeptons, 0.2)")
+    #     df = df.Define(f"{lep}_genMatch",  f"GetGenLeptonMatch({lep}_genMatchIdx, genLeptons)")
     if isData:
         return df
 
@@ -70,7 +70,8 @@ def DefineGenObjects(df, isData=False, isHH=False, Hbb_AK4mass_mpv=125., p4_suff
         df = df.Define("genHttCandidate", """GetGenHTTCandidate(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, false)""")
         df = df.Define("genHbbIdx", """GetGenHBBIndex(event, GenPart_pdgId, GenPart_daughters, GenPart_statusFlags)""")
         df = df.Define("genHbb_isBoosted", "GenPart_pt[genHbbIdx]>550")
-    for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
+    # for var in ["GenJet", "GenJetAK8", "SubGenJetAK8"]:
+    for var in ["GenJet", "GenJetAK8"]:
         df = df.Define(f"{var}_idx", f"CreateIndexes({var}_pt.size())")
         df = df.Define(f"{var}_p4", f"GetP4({var}_pt,{var}_eta,{var}_phi,{var}_mass, {var}_idx)")
 
@@ -106,7 +107,7 @@ def CreateRecoP4(df, suffix='nano', nano_version="v12"):
             df = df.Define("TrigObj_mass", "RVecF(TrigObj_pt.size(), 0.f)")
         df = df.Define(f"TrigObj_p4", f"GetP4(TrigObj_pt,TrigObj_eta,TrigObj_phi, TrigObj_mass, TrigObj_idx)")
     for obj in ana_reco_object_collections[nano_version]:
-        if "MET" in obj:
+        if "PuppiMET" in obj:
             df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, 0., {obj}_phi, 0.)")
         elif "dau1" in obj or "dau2" in obj:
             df = df.Define(f"{obj}_p4{suffix}", f"LorentzVectorM({obj}_pt, {obj}_eta, {obj}_phi, {obj}_mass)")

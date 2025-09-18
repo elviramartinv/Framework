@@ -123,7 +123,7 @@ action() {
         bashcompinit
     fi
 
-    source /afs/cern.ch/work/k/kandroso/public/flaf_env/bin/activate
+    source /afs/cern.ch/work/k/kandroso/public/flaf_env_2024_08/bin/activate
     source /cvmfs/sft.cern.ch/lcg/app/releases/ROOT/6.30.06/x86_64-almalinux9.3-gcc114-opt/bin/thisroot.sh
     run_cmd source /afs/cern.ch/user/m/mrieger/public/law_sw/setup.sh
     source "$( law completion )"

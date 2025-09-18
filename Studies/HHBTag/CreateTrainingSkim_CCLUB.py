@@ -12,9 +12,9 @@ import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
-    jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagRobustParTAK4B", "genMatched", "partonFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+    jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagUParTAK4B", "genMatched", "partonFlavour"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     def JetSavingCondition(df):
-        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagPNetB, Jet_idx[Jet_bCand_CCLUB])')
+        df = df.Define('Jet_selIdx', 'ReorderObjects(Jet_btagUParTAK4B, Jet_idx[Jet_bCand_CCLUB])')
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
@@ -93,14 +93,14 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, sn
 
     colToSave = ["event","luminosityBlock",
                 "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",
-                "channel","sample", "period", "X_mass", "node_index", "MET_pt", "MET_phi", "PuppiMET_pt", "PuppiMET_phi"]
+                "channel","sample", "period", "X_mass", "node_index", "PuppiMET_pt", "PuppiMET_phi"]
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
     colToSave+=["GenJet_b_PF", "GenJetAK8_b_PF", "GenJet_Hbb_PF", "GenJetAK8_Hbb", "GenJet_idx", "GenJet_Hbb", "GenJet_b_true"]
-    colToSave+=["genHbbIdx", "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_statusFlags", "GenJet_partonFlavour", "GenPart_phi"]
+    colToSave+=["genHbbIdx", "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_statusFlags", "GenJet_partonFlavour", "GenPart_phi", "GenPart_eta"]
     # colToSave+=["FirstGenHBBMatch", "SecondGenHBBMatch"]
-    colToSave+=["deltaR_values", "match_info"]
+    # colToSave+=["deltaR_values", "match_info"]
 
     varToSave = Utilities.ListToVector(colToSave)
     df.Snapshot("Event", outFile, varToSave, snapshotOptions)
