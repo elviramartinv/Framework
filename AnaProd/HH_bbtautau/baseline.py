@@ -132,7 +132,7 @@ def RecoJetSelection(df):
     return df
 
 def RecoJetSelection_CCLUB(df):
-    df = df.Define("Jet_bIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 2 ) ")
+    df = df.Define("Jet_bIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 2.5 && ( Jet_jetId >= 6 ) ")
     df = df.Define("FatJet_bbIncl_CCLUB", "FatJet_msoftdrop > 30 && abs(v_ops::eta(FatJet_p4)) < 2.5")
     df = df.Define("Jet_bCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_bIncl_CCLUB,{{dau1_p4, dau2_p4},}, 2, 0.5)")
     df = df.Define("FatJet_bbCand_CCLUB", "RemoveOverlaps(FatJet_p4, FatJet_bbIncl_CCLUB, {{dau1_p4, dau2_p4},}, 2, 0.5)")

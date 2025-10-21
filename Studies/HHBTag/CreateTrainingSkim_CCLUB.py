@@ -9,6 +9,7 @@ import Common.ReportTools as ReportTools
 import yaml
 import Common.BaselineSelection as Baseline
 import AnaProd.HH_bbtautau.baseline as HHBaseline
+import glob
 
 
 def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, snapshotOptions):
@@ -117,7 +118,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--period', type=str)
     parser.add_argument('--run', type=str, default="3")
-    parser.add_argument('--inFile', type=str)
+    parser.add_argument('--input', type=str)
     parser.add_argument('--outFile', type=str)
     parser.add_argument('--X_mass', type=int, default=-1)
     parser.add_argument('--node_index', type=int, default=-1)
@@ -129,6 +130,13 @@ if __name__ == "__main__":
                         default=f"{os.environ['ANALYSIS_PATH']}/config/pdg_name_type_charge.txt")
     args = parser.parse_args()
 
+    if os.path.isfile(args.input): 
+        inFile = [args.input]
+    elif os.path.isdir(args.input):  
+        inFile = glob.glob(os.path.join(args.input, "*.root"))
+    else:
+        raise ValueError("Not input file or directory found")
+
     ROOT.gROOT.SetBatch(True)
     ROOT.gROOT.ProcessLine(".include "+ os.environ['ANALYSIS_PATH'])
     ROOT.gROOT.ProcessLine('#include "include/GenTools.h"')
@@ -137,4 +145,4 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(args.inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, snapshotOptions)
+    createSkim(inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, snapshotOptions)
