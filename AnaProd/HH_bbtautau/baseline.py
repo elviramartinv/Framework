@@ -34,6 +34,10 @@ def GenJetSelection(df):
     df = df.Define("GenJet_B1","GenJet_pt > 20 && abs(GenJet_eta) < 2.5 && GenJet_Hbb")
     return df.Filter("GenJet_idx[GenJet_B1].size()==2", "(One)Two b-parton jets at least")
 
+def GenVBFJetSelection(df):
+    df = df.Define("GenJet_VBF_0", "GenJet_pt > 20 && abs(GenJet_eta) < 4.7 && GenVBFJetsMatch")
+    df = df.Define("GenJet_VBF", "RemoveOverlaps(GenJet_p4, GenJet_VBF_0,{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1], genHbbCandidate.leg_p4[0], genHbbCandidate.leg_p4[1]}}, 2, 0.5)")
+    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "Two different VBF jets at least")
 
 # def GenJetHttOverlapRemoval(df):
 #     for var in ["GenJet", "GenJetAK8"]:
@@ -45,6 +49,18 @@ def GenJetHttOverlapRemoval(df):
         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
     return df.Filter("GenJet_idx[GenJet_B2].size()==2", "No overlap between genJets and genHttCandidates")
 
+def GenJetVBFOverlapRemoval(df):
+    """
+    Overlap removal between b-jets, tau candidates, and VBF jets after VBF selection.
+    This ensures that b-jets and VBF jets are well separated.
+    """
+    for var in ["GenJet"]:
+        # Get the 4-momenta of selected VBF jets
+        df = df.Define("GenJet_VBF_p4", "Take(GenJet_p4, GenJet_idx[GenJet_VBF])")
+        # Remove overlap with taus and VBF jets simultaneously
+        df = df.Define(f"{var}_B3", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}}, GenJet_VBF_p4}}, 2, 0.5)" )
+    return df.Filter("GenJet_idx[GenJet_B3].size()==2", "No overlap between b-jets and Htt/VBF jets")
+
 
 # def GenJetHttOverlapRemoval_CCLUB(df):
 #     for var in ["GenJet", "GenJetAK8"]:
@@ -52,7 +68,7 @@ def GenJetHttOverlapRemoval(df):
 #     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def RequestOnlyResolvedGenJets(df):
-    return df.Filter("GenJet_idx[GenJet_B2].size()==2", "Resolved topology")
+    return df.Filter("GenJet_idx[GenJet_B3].size()==2", "Resolved topology")
 
 def RecoHttCandidateSelection(df, config):
     df = df.Define("Electron_B0", f"""
@@ -159,6 +175,16 @@ def ExtraRecoJetSelection(df):
     df = df.Define(f"ExtraJet_B1", """ RemoveOverlaps(Jet_p4, ExtraJet_B0,ObjectsToRemoveOverlap, 2, 0.5)""")
     return df
 
+def RecoVBFJetSelection(df):
+    df = df.Define("Jet_vbfIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
+    df = df.Define("Jet_vbfCand", "RemoveOverlaps(Jet_p4, Jet_vbfIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1], HbbCandidate->leg_p4[0], HbbCandidate->leg_p4[1]}}, 2, 0.5)")
+    return df
+
+def RecoVBFJetSelection_CCLUB(df, pt_threshold=20.0):
+    df = df.Define("Jet_vbfIncl_CCLUB", f"v_ops::pt(Jet_p4)>{pt_threshold} && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
+    df = df.Define("Jet_vbfCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_vbfIncl_CCLUB,{{dau1_p4, dau2_p4, bjet1_p4, bjet2_p4}}, 2, 0.5)")
+    return df
+
 # def ApplyJetSelection(df):
 #     return df.Filter("Jet_idx[Jet_bCand].size()>=2 || FatJet_idx[FatJet_bbCand].size()>=1", "Reco bjet candidates")
 
@@ -166,34 +192,18 @@ def ApplyJetSelection(df):
     return df.Filter("Jet_idx[Jet_bCand].size()>=2", "Reco bjet candidates")
 
 def GenRecoJetMatching(df):
-    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
+    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand, GenJet_B3, GenJet_p4, Jet_p4 , 0.3)")
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
 def GenRecoJetMatching_CCLUB(df):
-    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand_CCLUB, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
+    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand_CCLUB, GenJet_B3, GenJet_p4, Jet_p4 , 0.3)")
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
 def DefineHbbCand(df):
     df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
     df = df.Define("HbbCandidate", "GetHbbCandidate(Jet_HHBtagScore, Jet_bCand, Jet_p4, Jet_idx)")
-    return df
-
-def GenVBFJetSelection(df):
-    df = df.Define("GenJet_VBF_0", "GenJet_pt > 20 && abs(GenJet_eta) < 4.7 && GenVBFJetsMatch")
-    df = df.Define("GenJet_VBF", "RemoveOverlaps(GenJet_p4, GenJet_VBF_0,{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1], genHbbCandidate.leg_p4[0], genHbbCandidate.leg_p4[1]}}, 2, 0.5)")
-    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "Two different VBF jets at least")
-
-
-def RecoVBFJetSelection(df):
-    df = df.Define("Jet_vbfIncl", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
-    df = df.Define("Jet_vbfCand", "RemoveOverlaps(Jet_p4, Jet_vbfIncl,{{HttCandidate.leg_p4[0], HttCandidate.leg_p4[1], HbbCandidate->leg_p4[0], HbbCandidate->leg_p4[1]}}, 2, 0.5)")
-    return df
-
-def RecoVBFJetSelection_CCLUB(df):
-    df = df.Define("Jet_vbfIncl_CCLUB", f"v_ops::pt(Jet_p4)>20 && abs(v_ops::eta(Jet_p4)) < 4.7 && ( Jet_jetId >= 6 ) ")
-    df = df.Define("Jet_vbfCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_vbfIncl_CCLUB,{{dau1_p4, dau2_p4, bjet1_p4, bjet2_p4}}, 2, 0.5)")
     return df
 
 def GenRecoVBFJetMatching(df):
@@ -216,4 +226,31 @@ def DefineVBFCand_CCLUB(df):
 
 def DefineisCCLUBjet(df):
     df = df.Define("Jet_isCCLUBbjet", """GetIsCCLUBbjet(Jet_p4, bjet1_p4, bjet2_p4, 0.3)""")
+    return df
+
+def DefineisCCLUBvbfjet(df):
+    # Create LorentzVector objects for the preselected VBF jets from input branches
+    df = df.Define("vbfjet1_p4", """ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>>(vbfjet1_pt_nom, vbfjet1_eta, vbfjet1_phi, vbfjet1_mass_nom)""")
+    df = df.Define("vbfjet2_p4", """ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>>(vbfjet2_pt_nom, vbfjet2_eta, vbfjet2_phi, vbfjet2_mass_nom)""")
+    df = df.Define("Jet_isCCLUBvbfjet", """GetIsCCLUBvbfjet(Jet_p4, vbfjet1_p4, vbfjet2_p4, 0.3)""")
+    return df
+
+def ApplyVBFTopologicalSelection_CCLUB(df, centralJet_ptThreshold=20.0):
+    """Apply VBF topological cuts for pure samples (inspired by VBF trigger thresholds)"""
+    return df.Filter(f"ApplyVBFTopologicalCuts(VBFCand, Jet_p4, Jet_idx, Jet_isCCLUBbjet, {centralJet_ptThreshold})", 
+                     f"VBF topological cuts (mjj>500, |Δη|>2.5, central jet veto pT>{centralJet_ptThreshold})")
+
+def VBFTopologicalVariables_CCLUB(df, centralJet_ptThreshold=20.0):
+    """Define VBF topological variables for monitoring/analysis"""
+    df = df.Define("VBF_mjj", "VBFCand ? (VBFCand->leg_p4[0] + VBFCand->leg_p4[1]).M() : -1")
+    # Define both signed and unsigned eta differences for complete analysis
+    df = df.Define("VBF_deltaEta_signed", "VBFCand ? VBFCand->leg_p4[0].Eta() - VBFCand->leg_p4[1].Eta() : -999")
+    df = df.Define("VBF_deltaEta", "VBFCand ? VBFCand->leg_p4[0].Eta() - VBFCand->leg_p4[1].Eta() : -1")
+    df = df.Define("VBF_deltaPhi", "VBFCand ? ROOT::Math::VectorUtil::DeltaPhi(VBFCand->leg_p4[0], VBFCand->leg_p4[1]) : -999")
+    df = df.Define("VBF_centrality_htt", """VBFCand ? 
+        (dau1_eta + dau2_eta) / 2.0 - (VBFCand->leg_p4[0].Eta() + VBFCand->leg_p4[1].Eta()) / 2.0 : -999""")
+    df = df.Define("VBF_centrality_hbb", """VBFCand ? 
+        (bjet1_eta + bjet2_eta) / 2.0 - (VBFCand->leg_p4[0].Eta() + VBFCand->leg_p4[1].Eta()) / 2.0 : -999""")
+    df = df.Define("nJets_central", f"""VBFCand ? 
+        GetCentralJetMultiplicity(Jet_p4, Jet_idx, Jet_isCCLUBbjet, VBFCand->leg_p4[0], VBFCand->leg_p4[1], {centralJet_ptThreshold}, 2.5) : -1""")
     return df

@@ -5,7 +5,7 @@ from .Utilities import *
 initialized = False
 
 ana_reco_object_collections = {
-    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "SubJet", "dau1", "dau2" ],
+    "v12": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PFMET", "PuppiMET", "SubJet", "dau1", "dau2", "vbfjet1", "vbfjet2" ],
     "v14": [ "Jet",  "PuppiMET", 
              "bjet1", "bjet2", "dau1", "dau2", "fatbjet"],
     # "v14": [ "Electron", "Muon", "Tau", "Jet", "FatJet", "PuppiMET", 

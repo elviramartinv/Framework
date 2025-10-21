@@ -322,3 +322,119 @@ ROOT::VecOps::RVec<bool> GetIsCCLUBbjet(const RVecLV& RecoJets_p4,
 
     return isCCLUBbjet;
 }
+
+ROOT::VecOps::RVec<bool> GetIsCCLUBvbfjet(const RVecLV& RecoJets_p4,
+                                          const LorentzVectorM& vbfjet1_p4,
+                                          const LorentzVectorM& vbfjet2_p4,
+                                          float dR_thr)
+{
+    ROOT::VecOps::RVec<bool> isCCLUBvbfjet(RecoJets_p4.size(), false);
+    const double dR2_thr = std::pow(dR_thr, 2);
+
+    for (size_t i = 0; i < RecoJets_p4.size(); ++i) {
+        const auto& reco_jet = RecoJets_p4[i];
+        double dR2_vbfjet1 = ROOT::Math::VectorUtil::DeltaR2(reco_jet, vbfjet1_p4);
+        double dR2_vbfjet2 = ROOT::Math::VectorUtil::DeltaR2(reco_jet, vbfjet2_p4);
+
+        if (dR2_vbfjet1 < dR2_thr || dR2_vbfjet2 < dR2_thr) {
+            isCCLUBvbfjet[i] = true;
+        }
+    }
+
+    return isCCLUBvbfjet;
+}
+
+int GetCentralJetMultiplicity(const RVecLV& Jet_p4, const RVecI& Jet_idx, const RVecB& Jet_isCCLUBbjet, 
+                             const LorentzVectorM& vbfjet1_p4, const LorentzVectorM& vbfjet2_p4, 
+                             float pt_thr, float eta_max)
+{
+    // Get eta range of VBF jets
+    float eta_min = std::min(vbfjet1_p4.Eta(), vbfjet2_p4.Eta());
+    float eta_max_vbf = std::max(vbfjet1_p4.Eta(), vbfjet2_p4.Eta());
+    
+    int n_central = 0;
+    
+    for (size_t i = 0; i < Jet_idx.size(); ++i) {
+        int jet_idx = Jet_idx[i];
+        
+        // Skip if it's a b-tagged jet (part of Higgs decay)
+        if (Jet_isCCLUBbjet[jet_idx]) continue;
+        
+        // Skip if it's one of the VBF jets (rough matching by eta and pt)
+        float jet_eta = Jet_p4[jet_idx].Eta();
+        float jet_pt = Jet_p4[jet_idx].Pt();
+        
+        if ((abs(jet_eta - vbfjet1_p4.Eta()) < 0.1 && abs(jet_pt - vbfjet1_p4.Pt()) < 5.0) ||
+            (abs(jet_eta - vbfjet2_p4.Eta()) < 0.1 && abs(jet_pt - vbfjet2_p4.Pt()) < 5.0)) {
+            continue;
+        }
+        
+        // Apply cuts
+        if (jet_pt < pt_thr) continue;
+        if (abs(jet_eta) > eta_max) continue;
+        
+        // Check if jet is in central region between VBF jets
+        if (jet_eta > eta_min && jet_eta < eta_max_vbf) {
+            n_central++;
+        }
+    }
+    
+    return n_central;
+}
+
+float GetEtaDependentPtThreshold(float abs_eta)
+{
+    // Eta-dependent pT thresholds for VBF jet selection
+    // Based on detector resolution and pileup considerations:
+    // - Central (|η| < 2.5): Better resolution, less pileup → lower threshold
+    // - Forward (|η| ≥ 2.5): Worse resolution, more pileup → higher threshold
+    if (abs_eta < 2.5) {
+        return 20.0;  // Central region
+    } else {
+        return 30.0;  // Forward region
+    }
+}
+
+ROOT::VecOps::RVec<bool> ApplyEtaDependentPtCut(const RVecLV& Jet_p4)
+{
+    ROOT::VecOps::RVec<bool> passes(Jet_p4.size());
+    
+    for (size_t i = 0; i < Jet_p4.size(); ++i) {
+        float pt = Jet_p4[i].Pt();
+        float abs_eta = abs(Jet_p4[i].Eta());
+        float pt_threshold = GetEtaDependentPtThreshold(abs_eta);
+        
+        passes[i] = (pt > pt_threshold && abs_eta < 4.7);
+    }
+    
+    return passes;
+}
+
+// Apply VBF topological cuts for pure samples 
+bool ApplyVBFTopologicalCuts(const std::optional<VBFJetCand>& VBFCand, 
+                              const RVecLV& Jet_p4, const RVecI& Jet_idx, 
+                              const RVecB& Jet_isCCLUBbjet, 
+                              float centralJet_ptThreshold = 20.0)
+{
+    if (!VBFCand.has_value()) return false;
+    
+    // Calculate VBF topological variables
+    auto jet1 = VBFCand->leg_p4[0];
+    auto jet2 = VBFCand->leg_p4[1];
+    
+    // 1. Invariant mass cut (VBF trigger inspired: mjj > 500 GeV)
+    float mjj = (jet1 + jet2).M();
+    if (mjj <= 500.0) return false;
+    
+    // 2. Pseudorapidity separation (VBF signature: |Δη| > 2.5)
+    float deltaEta = abs(jet1.Eta() - jet2.Eta());
+    if (deltaEta <= 2.5) return false;
+
+    // 3. Central jet veto (VBF vs QCD discrimination: ≤ 1 central jet)
+    // Use configurable pT threshold for central jet counting
+    int nJets_central = GetCentralJetMultiplicity(Jet_p4, Jet_idx, Jet_isCCLUBbjet, 
+                                                  jet1, jet2, centralJet_ptThreshold, 2.5);
+    if (nJets_central > 1) return false;
+    
+    return true;
+}

@@ -3,7 +3,10 @@ import numpy as np
 import sys
 import os
 if __name__ == "__main__":
-    sys.path.append(os.environ['ANALYSIS_PATH'])
+    # Get ANALYSIS_PATH from environment, with fallback to current directory structure
+    analysis_path = os.environ.get('ANALYSIS_PATH', '/afs/cern.ch/user/e/emartinv/public/hhbtag_skims_fw')
+    if analysis_path not in sys.path:
+        sys.path.append(analysis_path)
 import Common.Utilities as Utilities
 import Common.ReportTools as ReportTools
 import yaml
@@ -12,11 +15,35 @@ import Common.BaselineSelection as Baseline
 import AnaProd.HH_bbtautau.baseline as HHBaseline
 
 
-def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, version, config, snapshotOptions):
-    jetVar_list = [ "pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "genMatched", "vbfgenMatched", "isCCLUBbjet", "HHbtag"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, version, config, snapshotOptions, apply_vbf_cuts=False, jet_selection="all"):
+    # Include necessary headers for ROOT operations
+    ROOT.gInterpreter.Declare("""
+    #include <ROOT/RVec.hxx>
+    #include <ROOT/RDF/RInterface.hxx>
+    using namespace ROOT::VecOps;
+    """)
     
-    def JetSavingCondition(df):
-        df = df.Define('Jet_selIdx', 'ReorderObjects(abs(Jet_eta), Jet_idx)')
+    # Variables that exist in the original DataFrame
+    jetVar_list_original = ["pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagPNetQvG", "HHbtag"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+    
+    # Variables that are defined during selection process
+    jetVar_list_defined = ["genMatched", "vbfgenMatched", "isCCLUBbjet", "isCCLUBvbfjet"]
+       
+    jetVar_list = jetVar_list_original + jetVar_list_defined
+    
+    def JetSavingCondition(df, jet_selection_mode):
+        # Define jet selection strategies
+        if jet_selection_mode == "all":
+            # Both b-candidate and VBF candidate jets
+            df = df.Define('Jet_selIdx', '''ReorderObjects(abs(Jet_eta), 
+                Jet_idx[(Jet_bCand_CCLUB || Jet_vbfCand_CCLUB)])''')
+        elif jet_selection_mode == "vbf_only":
+            # Only VBF candidate jets
+            df = df.Define('Jet_selIdx', 'ReorderObjects(abs(Jet_eta), Jet_idx[Jet_vbfCand_CCLUB])')
+        else:
+            raise ValueError(f"Unknown jet_selection mode: {jet_selection_mode}. Use 'all' or 'vbf_only'")
+        
+        # Apply the selection to all jet variables
         for var in jetVar_list:
             df = df.Define(f"RecoJet_{var}", f"Take(Jet_{var}, Jet_selIdx)")
         return df
@@ -33,7 +60,16 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     Baseline.Initialize(False, False)
 
     df = ROOT.RDataFrame("Events", inFile)
-    # print("number of events before any selection: ", df.Count().GetValue())
+    events_initial = df.Count().GetValue()
+    print(f"Initial events in file: {events_initial}")
+    print(f"Jet selection mode: {jet_selection}")
+    
+    # Print jet selection info
+    jet_selection_descriptions = {
+        "all": "Both b-candidate and VBF candidate jets with pT > 20",
+        "vbf_only": "Only VBF candidate jets"
+    }
+    print(f"  -> {jet_selection_descriptions.get(jet_selection, 'Unknown selection')}")
     # df = df.Range(100)
     df = Baseline.CreateRecoP4(df)
     df = Baseline.SelectRecoP4(df)
@@ -44,16 +80,16 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = df.Define("n_GenJet", "GenJet_idx.size()")
     
     # print("Eventos inicial", df.Count().GetValue())
-    df = HHBaseline.PassGenAcceptance(df)
-    # print("Eventos despues de PassGenAcceptance", df.Count().GetValue())
-    df = HHBaseline.GenJetSelection(df)
+    df = HHBaseline.PassGenAcceptance(df) # candidate Htt pT > 20 and eta < 2.3
+    # print("Eventos despues de PassGenAcceptance", df.Count().GetValue()) 
+    df = HHBaseline.GenJetSelection(df) # Jets selected from Hbb pt > 20 and eta < 2.5 & b-parton matching from Higgs
     # print("Eventos despues de GenJetSelection", df.Count().GetValue())
-    df = HHBaseline.GenJetHttOverlapRemoval(df)
-    # print("Eventos despues de GenJetHttOverlapRemoval", df.Count().GetValue())
-    df = HHBaseline.RequestOnlyResolvedGenJets(df)
-    # print("Eventos despues de RequestOnlyResolvedGenJets", df.Count().GetValue())
-    df = HHBaseline.GenVBFJetSelection(df)
+    df = HHBaseline.GenVBFJetSelection(df) # Jets from VBF quarks pt > 20 & eta < 4.7 & VBF quark matching from LHE particles (applied before overlap removal)
     # print("Eventos despues de GenVBFJetSelection", df.Count().GetValue())
+    df = HHBaseline.GenJetVBFOverlapRemoval(df) # Overlap removal between GenJets, GenTaus and GenVBFJets
+    # print("Eventos despues de GenJetVBFOverlapRemoval", df.Count().GetValue())
+    df = HHBaseline.RequestOnlyResolvedGenJets(df) # Only resolved jets
+    # print("Eventos despues de RequestOnlyResolvedGenJets", df.Count().GetValue())
 
 
     # df_initial = ROOT.RDataFrame("Events", inFile)
@@ -86,12 +122,18 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = HHBaseline.RecoJetSelection_CCLUB(df)
     df = HHBaseline.GenRecoJetMatching_CCLUB(df)
 
-    df = HHBaseline.RecoVBFJetSelection_CCLUB(df)
+    if apply_vbf_cuts:
+        pT_threshold = 30.0
+    else:
+        pT_threshold = 20.0
+
+    df = HHBaseline.RecoVBFJetSelection_CCLUB(df, pT_threshold)
     df = HHBaseline.GenRecoVBFJetMatching_CCLUB(df)
 
     df = HHBaseline.DefineVBFCand_CCLUB(df)
 
     df = HHBaseline.DefineisCCLUBjet(df)
+    df = HHBaseline.DefineisCCLUBvbfjet(df)
 
     df = df.Define("HttCandidate_leg0_pt", "dau1_pt")
     df = df.Define("HttCandidate_leg0_eta", "dau1_eta")
@@ -120,10 +162,28 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = df.Define("VBFCand_leg1_phi", "VBFCand->leg_p4[1].Phi()")
     df = df.Define("VBFCand_leg1_mass", "VBFCand->leg_p4[1].M()")
 
+    # Set pT threshold for central jets based on VBF cuts mode
+    centralJet_ptThreshold = 30.0 if apply_vbf_cuts else 20.0
+ 
+    df = HHBaseline.VBFTopologicalVariables_CCLUB(df, centralJet_ptThreshold)
+
+    # Apply VBF topological cuts if requested (for purer sample)
+    if apply_vbf_cuts:
+        print(f"Applying VBF topological cuts for purer sample...")
+        df = HHBaseline.ApplyVBFTopologicalSelection_CCLUB(df, centralJet_ptThreshold)
+
+    # Show final statistics (total efficiency from initial to final)
+    events_final = df.Count().GetValue()
+    final_efficiency = 100 * events_final / events_initial
+    
+    if apply_vbf_cuts:
+        print(f"Final statistics (baseline + VBF cuts): {events_final}/{events_initial} events ({final_efficiency:.1f}% total efficiency)")
+    else:
+        print(f"Final statistics (baseline only): {events_final}/{events_initial} events ({final_efficiency:.1f}% total efficiency)")
 
     df = df.Define("channel", "pairType")
 
-    df = JetSavingCondition(df)
+    df = JetSavingCondition(df, jet_selection)
     df = GenJetSavingCondition(df)
     # df = LHEPartSavingCondition(df)
 
@@ -138,12 +198,13 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
                 "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",
                 "HbbCandidate_leg0_pt", "HbbCandidate_leg0_eta", "HbbCandidate_leg0_phi", "HbbCandidate_leg0_mass", "HbbCandidate_leg1_pt", "HbbCandidate_leg1_eta", "HbbCandidate_leg1_phi","HbbCandidate_leg1_mass",
                 "VBFCand_leg0_pt", "VBFCand_leg0_eta", "VBFCand_leg0_phi", "VBFCand_leg0_mass", "VBFCand_leg1_pt", "VBFCand_leg1_eta", "VBFCand_leg1_phi","VBFCand_leg1_mass",
+                "VBF_mjj", "VBF_deltaEta", "VBF_deltaPhi", "VBF_centrality_htt", "VBF_centrality_hbb", "nJets_central",
                 "channel","sample", "period", "X_mass", "node_index", "PuppiMET_pt", "PuppiMET_phi"]
 
     colToSave+=[f"RecoJet_{var}" for var in jetVar_list]
     colToSave+=[f"genjet_{genvar}" for genvar in genjetVar_list]
     colToSave+=[f"LHEPart_{lhevar}" for lhevar in lheVar_list]
-    colToSave+=["GenJet_b_PF", "GenJet_Hbb" , "GenJet_idx", "GenJet_eta", "GenJet_B2"]
+    colToSave+=["GenJet_b_PF", "GenJet_Hbb" , "GenJet_idx", "GenJet_eta", "GenJet_B3"]
     colToSave+=["Jet_selIdx", "Jet_idx"]
     colToSave+=["LHEPartVBFJetsIdx", "GenVBFJetsMatch"]
 
@@ -174,6 +235,11 @@ if __name__ == "__main__":
     parser.add_argument('--compressionAlgo', type=str, default="LZMA")
     parser.add_argument('--particleFile', type=str,
                         default=f"{os.environ['ANALYSIS_PATH']}/config/pdg_name_type_charge.txt")
+    parser.add_argument('--vbf_cuts', action='store_true', 
+                        help='Apply additional VBF topological cuts for purer sample')
+    parser.add_argument('--jet_selection', type=str, default="vbf_only",
+                        choices=['all', 'vbf_only'],
+                        help='Jet selection strategy: all (b+VBF jets with pT>20), vbf_only (only VBF jets)')
     args = parser.parse_args()
 
     if os.path.isfile(args.input): 
@@ -203,4 +269,4 @@ if __name__ == "__main__":
     snapshotOptions.fOverwriteIfExists=True
     snapshotOptions.fCompressionAlgorithm = getattr(ROOT.ROOT, 'k' + args.compressionAlgo)
     snapshotOptions.fCompressionLevel = args.compressionLevel
-    createSkim(inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, args.version, config, snapshotOptions)
+    createSkim(inFile, args.outFile, args.run, args.period, args.sample, args.X_mass, args.node_index, args.mpv, args.version, config, snapshotOptions, args.vbf_cuts, args.jet_selection)
