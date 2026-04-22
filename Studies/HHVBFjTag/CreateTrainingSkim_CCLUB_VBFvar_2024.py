@@ -284,7 +284,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     """)
     
     # Variables that exist in the original DataFrame
-    jetVar_list_original = ["pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagPNetQvG", "HHbtag"] # "HHBtagScore" excluded for now until I can test the new version for Run3
+    jetVar_list_original = ["pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagPNetQvG", "btagUParTAK4B", "HHbtag"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     
     # Variables that are defined during selection process
     jetVar_list_defined = ["vbfgenMatched", "isCCLUBbjet", "isCCLUBvbfjet"]
@@ -342,9 +342,10 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = HHBaseline.GenJetHttOverlapRemoval(df)
     df = HHBaseline.GenAllOverlapRemoval(df)
     df = HHBaseline.RequestOnlyResolvedGenJets(df)
-    df = HHBaseline.GenRecoTauMatching(df)
-    df = HHBaseline.GenJetMatchingForBjets(df)
-    
+    # df = HHBaseline.GenRecoTauMatching(df)
+    # df = HHBaseline.GenJetMatchingForBjets(df)
+    df = HHBaseline.RecoJetSelection_CCLUB(df)
+    df = HHBaseline.GenRecoJetMatching_CCLUB(df)
     # Define VBF jet selection threshold
     pT_threshold = 20.0  # Use standard threshold since we're not applying VBF cuts
     df = HHBaseline.RecoVBFJetSelection_CCLUB(df, pT_threshold)

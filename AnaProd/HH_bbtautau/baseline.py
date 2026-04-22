@@ -35,9 +35,8 @@ def GenJetSelection(df):
     return df.Filter("GenJet_idx[GenJet_B1].size()==2", "(One)Two b-parton jets at least")
 
 def GenVBFJetSelection(df):
-    df = df.Define("GenJet_VBF_0", "GenJet_pt > 20 && abs(GenJet_eta) < 4.7 && GenVBFJetsMatch")
-    df = df.Define("GenJet_VBF", "RemoveOverlaps(GenJet_p4, GenJet_VBF_0,{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1], genHbbCandidate.leg_p4[0], genHbbCandidate.leg_p4[1]}}, 2, 0.5)")
-    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "Two different VBF jets at least")
+    df = df.Define("GenJet_VBF1", "GenJet_pt > 20 && abs(GenJet_eta) < 4.7 && GenVBFJetsMatch")
+    return df.Filter("GenJet_idx[GenJet_VBF1].size()>=2", "Two different VBF jets at least")
 
 # def GenJetHttOverlapRemoval(df):
 #     for var in ["GenJet", "GenJetAK8"]:
@@ -45,21 +44,62 @@ def GenVBFJetSelection(df):
 #     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def GenJetHttOverlapRemoval(df):
+    """Remove overlap between b-jets from Hbb and taus from Htt.
+    GenJet_B1 -> GenJet_B2 (after removing overlap with Htt taus)
+    """
     for var in ["GenJet"]:
         df = df.Define(f"{var}_B2", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
     return df.Filter("GenJet_idx[GenJet_B2].size()==2", "No overlap between genJets and genHttCandidates")
 
-def GenJetVBFOverlapRemoval(df):
+def GenAllOverlapRemoval(df):
+    """Unified overlap removal: VBF jets vs (Hbb b-jets + Htt taus).
+    This ensures VBF jets don't overlap with either b-jets (after tau cleaning) or taus.
+    Uses GenJet_B2 (b-jets already cleaned from tau overlap) instead of genHbbCandidate.
+    
+    Note: GenJet_B2 are the indices of b-jets AFTER removing overlap with taus,
+    so we extract their p4 vectors to use in the overlap removal.
+    At this point we are guaranteed to have exactly 2 b-jets (enforced by GenJetHttOverlapRemoval filter).
     """
-    Overlap removal between b-jets, tau candidates, and VBF jets after VBF selection.
-    This ensures that b-jets and VBF jets are well separated.
+    # Extract the p4 of the two b-jets after tau overlap removal
+    df = df.Define("GenJet_B2_indices", "GenJet_idx[GenJet_B2]")
+    df = df.Define("GenJet_B2_p4_vec", """
+        ROOT::VecOps::RVec<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>>> result;
+        for (const auto& idx : GenJet_B2_indices) {
+            result.push_back(GenJet_p4[idx]);
+        }
+        return result;
+    """)
+    
+    # Remove VBF jet overlaps with both b-jets AND taus
+    df = df.Define("GenJet_VBF2", """
+        std::vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>>> objects_to_remove;
+        // Add tau candidates
+        objects_to_remove.push_back(genHttCandidate->leg_p4[0]);
+        objects_to_remove.push_back(genHttCandidate->leg_p4[1]);
+        // Add b-jets (already cleaned from tau overlap)
+        for (const auto& bjet_p4 : GenJet_B2_p4_vec) {
+            objects_to_remove.push_back(bjet_p4);
+        }
+        return RemoveOverlaps(GenJet_p4, GenJet_VBF1, {objects_to_remove}, 2, 0.5);
+    """)
+    return df.Filter("GenJet_idx[GenJet_VBF2].size()>=2", "No overlap between VBF jets and (Hbb+Htt)")
+
+# Legacy functions - DEPRECATED: Use GenAllOverlapRemoval instead
+# These are kept for backwards compatibility but should not be used together
+def GenVBFHttOverlapRemoval(df):
+    """DEPRECATED: Use GenAllOverlapRemoval for proper 3-way overlap removal"""
+    for var in ["GenJet"]:
+        df = df.Define(f"{var}_VBF", f"RemoveOverlaps({var}_p4, {var}_VBF1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}},}}, 2, 0.5)" )
+    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "No overlap between VBF jets and Htt jets")
+
+def GenJetVBFOverlapRemoval(df):
+    """DEPRECATED: Use GenAllOverlapRemoval for proper 3-way overlap removal
+    WARNING: This uses genHbbCandidate.leg_p4 which are GenPart b-quarks, 
+    NOT GenJets after tau overlap removal!
     """
     for var in ["GenJet"]:
-        # Get the 4-momenta of selected VBF jets
-        df = df.Define("GenJet_VBF_p4", "Take(GenJet_p4, GenJet_idx[GenJet_VBF])")
-        # Remove overlap with taus and VBF jets simultaneously
-        df = df.Define(f"{var}_B3", f"RemoveOverlaps({var}_p4, {var}_B1,{{{{genHttCandidate->leg_p4[0], genHttCandidate->leg_p4[1]}}, GenJet_VBF_p4}}, 2, 0.5)" )
-    return df.Filter("GenJet_idx[GenJet_B3].size()==2", "No overlap between b-jets and Htt/VBF jets")
+        df = df.Define(f"{var}_VBF", f"RemoveOverlaps({var}_p4, {var}_VBF1,{{{{genHbbCandidate.leg_p4[0], genHbbCandidate.leg_p4[1]}},}}, 2, 0.5)" )
+    return df.Filter("GenJet_idx[GenJet_VBF].size()>=2", "No overlap between VBF jets and Hbb jets")
 
 
 # def GenJetHttOverlapRemoval_CCLUB(df):
@@ -68,7 +108,7 @@ def GenJetVBFOverlapRemoval(df):
 #     return df.Filter("GenJet_idx[GenJet_B2].size()==2 || (GenJetAK8_idx[GenJetAK8_B2].size()==1 && genHbb_isBoosted)", "No overlap between genJets and genHttCandidates")
 
 def RequestOnlyResolvedGenJets(df):
-    return df.Filter("GenJet_idx[GenJet_B3].size()==2", "Resolved topology")
+    return df.Filter("GenJet_idx[GenJet_B2].size()==2", "Resolved topology")
 
 def RecoHttCandidateSelection(df, config):
     df = df.Define("Electron_B0", f"""
@@ -151,6 +191,14 @@ def ThirdLeptonVeto(df):
     df = df.Filter("Muon_idx[Muon_vetoSel].size() == 0", "No extra muons")
     return df
 
+def GenRecoTauMatching(df):
+    df = df.Define("dau1_genTauIdx_matched", "GenRecoTauMatchingSingle(dau1_p4, *genHttCandidate, 0.3)")
+    df = df.Define("dau2_genTauIdx_matched", "GenRecoTauMatchingSingle(dau2_p4, *genHttCandidate, 0.3)")
+    df = df.Define("dau1_genMatched", "dau1_genTauIdx_matched >= 0")
+    df = df.Define("dau2_genMatched", "dau2_genTauIdx_matched >= 0")
+    df = df.Filter("dau1_genMatched && dau2_genMatched", "Both taus have gen match")
+    return df
+
 def RecoJetInvMass(df):
     df = df.Define("Jet_invMass", "GetInvMass(Jet_p4)")
     return df
@@ -185,6 +233,34 @@ def RecoVBFJetSelection_CCLUB(df, pt_threshold=20.0):
     df = df.Define("Jet_vbfCand_CCLUB", "RemoveOverlaps(Jet_p4, Jet_vbfIncl_CCLUB,{{dau1_p4, dau2_p4, bjet1_p4, bjet2_p4}}, 2, 0.5)")
     return df
 
+def RecoJetHornsRemoval(df):
+    """Remove reconstructed jets in the detector 'Horns' region (bad reconstruction region).
+    
+    Horns region: 2.5 < |eta| < 3.0 with pT < 50 GeV
+    These jets have poor reconstruction quality and should be removed from VBF jet candidates.
+    
+    Applies to Jet_vbfCand_CCLUB (VBF jets after overlap removal with taus and b-jets).
+    Creates Jet_vbfCand_CCLUB_noHorns for further analysis.
+    """
+    df = df.Define("Jet_vbfCand_CCLUB_noHorns", """
+        ROOT::VecOps::RVec<bool> result(Jet_p4.size(), false);
+        for (size_t i = 0; i < Jet_p4.size(); ++i) {
+            if (!Jet_vbfCand_CCLUB[i]) continue;  // Skip jets not in VBF candidate selection
+            
+            float pt = Jet_p4[i].Pt();
+            float abs_eta = std::abs(Jet_p4[i].Eta());
+            
+            // Remove if in Horns region: pT < 50 && 2.5 < |eta| < 3.0
+            bool in_horns_region = (pt < 50.0 && abs_eta > 2.5 && abs_eta < 3.0);
+            
+            if (!in_horns_region) {
+                result[i] = true;
+            }
+        }
+        return result;
+    """)
+    return df.Filter("Jet_idx[Jet_vbfCand_CCLUB_noHorns].size()>=2", "VBF reco jets after Horns removal")
+
 # def ApplyJetSelection(df):
 #     return df.Filter("Jet_idx[Jet_bCand].size()>=2 || FatJet_idx[FatJet_bbCand].size()>=1", "Reco bjet candidates")
 
@@ -192,14 +268,36 @@ def ApplyJetSelection(df):
     return df.Filter("Jet_idx[Jet_bCand].size()>=2", "Reco bjet candidates")
 
 def GenRecoJetMatching(df):
-    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand, GenJet_B3, GenJet_p4, Jet_p4 , 0.3)")
+    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
 
 def GenRecoJetMatching_CCLUB(df):
-    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand_CCLUB, GenJet_B3, GenJet_p4, Jet_p4 , 0.3)")
+    df = df.Define("Jet_genJetIdx_matched", "GenRecoJetMatching(event,Jet_idx, GenJet_idx, Jet_bCand_CCLUB, GenJet_B2, GenJet_p4, Jet_p4 , 0.3)")
     df = df.Define("Jet_genMatched", "Jet_genJetIdx_matched>=0")
     return df.Filter("Jet_genJetIdx_matched[Jet_genMatched].size()>=2", "Two different gen-reco jet matches at least")
+
+def GenJetMatchingForBjets(df):
+    """Match reconstructed b-jets (from CCLUB preselection) to generator-level b-jets.
+    
+    IMPORTANT: Matching is done ONLY against cleaned GenJets (GenJet_B2_p4_vec).
+    These are the b-jets after removing overlap with taus, ensuring consistent matching.
+    
+    The matching returns:
+    - bjet{1,2}_genJetIdx_matched_local: Index in GenJet_B2_p4_vec (0, 1, or -1)
+    - bjet{1,2}_genJetIdx_matched: Original GenJet index (to access GenJet_pt, GenJet_eta, etc.)
+    """
+    # Match against cleaned b-jets (returns local index: 0, 1, or -1)
+    df = df.Define("bjet1_genJetIdx_matched_local", "GenRecoJetMatchingSingle(bjet1_p4, GenJet_B2_p4_vec, 0.3)")
+    df = df.Define("bjet2_genJetIdx_matched_local", "GenRecoJetMatchingSingle(bjet2_p4, GenJet_B2_p4_vec, 0.3)")
+    
+    # Convert to original GenJet indices (for accessing GenJet branches)
+    df = df.Define("bjet1_genJetIdx_matched", "bjet1_genJetIdx_matched_local >= 0 ? GenJet_B2_indices[bjet1_genJetIdx_matched_local] : -1")
+    df = df.Define("bjet2_genJetIdx_matched", "bjet2_genJetIdx_matched_local >= 0 ? GenJet_B2_indices[bjet2_genJetIdx_matched_local] : -1")
+    
+    df = df.Define("bjet1_genMatched", "bjet1_genJetIdx_matched >= 0")
+    df = df.Define("bjet2_genMatched", "bjet2_genJetIdx_matched >= 0")
+    return df.Filter("bjet1_genMatched && bjet2_genMatched", "Both bjets have gen-reco match")
 
 def DefineHbbCand(df):
     df = df.Define("Jet_HHBtagScore", "GetHHBtagScore(Jet_bCand, Jet_idx, Jet_p4,Jet_btagDeepFlavB, MET_pt,  MET_phi, HttCandidate, period, event)")
@@ -207,12 +305,26 @@ def DefineHbbCand(df):
     return df
 
 def GenRecoVBFJetMatching(df):
+    """Match reconstructed VBF jets to generator-level VBF jets.
+    
+    NOTE: This is the legacy version that uses GenJet_VBF (before unified overlap removal).
+    For proper 3-way overlap removal, use GenRecoVBFJetMatching_CCLUB with GenAllOverlapRemoval.
+    """
     df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand, GenJet_VBF, GenJet_p4, Jet_p4, 0.3)""")
     df = df.Define("Jet_vbfgenMatched", "GenRecoVBFJetMatchIdx>=0") 
     return df.Filter("GenRecoVBFJetMatchIdx[Jet_vbfgenMatched].size()>=2", "Two different gen-reco VBF matches") # 2 VBF jets at least
 
 def GenRecoVBFJetMatching_CCLUB(df):
-    df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand_CCLUB, GenJet_VBF, GenJet_p4, Jet_p4, 0.3)""")
+    """Match reconstructed VBF jets to generator-level VBF jets (after unified overlap removal).
+    
+    CRITICAL: Uses GenJet_VBF2 which is the result of GenAllOverlapRemoval.
+    GenJet_VBF2 contains VBF jets after removing overlaps with BOTH taus and b-jets.
+    This ensures consistency in the gen-reco matching process.
+    
+    NOTE: For reco jets, uses Jet_vbfCand_CCLUB_noHorns (after Horns removal) if RecoJetHornsRemoval
+    was applied, otherwise uses Jet_vbfCand_CCLUB.
+    """
+    df = df.Define("GenRecoVBFJetMatchIdx", """GenRecoVBFJetMatching(event, Jet_idx, GenJet_idx, Jet_vbfCand_CCLUB_noHorns, GenJet_VBF2, GenJet_p4, Jet_p4, 0.3)""")
     df = df.Define("Jet_vbfgenMatched", "GenRecoVBFJetMatchIdx>=0") 
     return df.Filter("GenRecoVBFJetMatchIdx[Jet_vbfgenMatched].size()>=2", "Two different gen-reco VBF matches") # 2 VBF jets at least
 
@@ -221,7 +333,11 @@ def DefineVBFCand(df):
     return df
 
 def DefineVBFCand_CCLUB(df):
-    df = df.Define("VBFCand", """GetVBFJetCandidate(Jet_vbfCand_CCLUB, Jet_p4, Jet_idx, GenRecoVBFJetMatchIdx)""")
+    """Define VBF candidate from matched VBF jets.
+    
+    Uses Jet_vbfCand_CCLUB_noHorns (after Horns removal) if RecoJetHornsRemoval was applied.
+    """
+    df = df.Define("VBFCand", """GetVBFJetCandidate(Jet_vbfCand_CCLUB_noHorns, Jet_p4, Jet_idx, GenRecoVBFJetMatchIdx)""")
     return df
 
 def DefineisCCLUBjet(df):

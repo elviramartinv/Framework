@@ -163,6 +163,34 @@ RVecI GenRecoJetMatching(int event,const RVecI& Jet_idx, const RVecI& GenJet_idx
   return recoJetMatched;
 }
 
+// Matching de un jet reco a una colección de genjets
+inline int GenRecoJetMatchingSingle(const LorentzVectorM& recoJet_p4, const RVecLV& GenJet_p4, float DeltaR_thr) {
+    int matched_idx = -1;
+    float deltaR_min = std::numeric_limits<float>::infinity();
+    for (size_t gen_idx = 0; gen_idx < GenJet_p4.size(); ++gen_idx) {
+        float deltaR = ROOT::Math::VectorUtil::DeltaR(recoJet_p4, GenJet_p4[gen_idx]);
+        if (deltaR < deltaR_min && deltaR < DeltaR_thr) {
+            deltaR_min = deltaR;
+            matched_idx = gen_idx;
+        }
+    }
+    return matched_idx;
+}
+
+// Matching de un tau reco a los gen taus del HttCandidate
+template<size_t N>
+inline int GenRecoTauMatchingSingle(const LorentzVectorM& recoTau_p4, const HTTCand<N>& genHttCandidate, float DeltaR_thr) {
+    int matched_idx = -1;
+    float deltaR_min = std::numeric_limits<float>::infinity();
+    for (size_t gen_idx = 0; gen_idx < N; ++gen_idx) {
+        float deltaR = ROOT::Math::VectorUtil::DeltaR(recoTau_p4, genHttCandidate.leg_p4[gen_idx]);
+        if (deltaR < deltaR_min && deltaR < DeltaR_thr) {
+            deltaR_min = deltaR;
+            matched_idx = gen_idx;
+        }
+    }
+    return matched_idx;
+}
 
 std::optional<HbbCand> GetHbbCandidate(const RVecF& HHbTagScores, const RVecB& JetSel, const RVecLV& Jet_p4, const RVecI& Jet_idx)
 {

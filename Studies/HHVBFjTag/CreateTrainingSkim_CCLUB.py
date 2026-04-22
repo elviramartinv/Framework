@@ -27,7 +27,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     jetVar_list_original = ["pt", "eta", "phi", "mass", "btagDeepFlavB", "btagPNetB", "btagPNetQvG", "HHbtag"] # "HHBtagScore" excluded for now until I can test the new version for Run3
     
     # Variables that are defined during selection process
-    jetVar_list_defined = ["genMatched", "vbfgenMatched", "isCCLUBbjet", "isCCLUBvbfjet"]
+    jetVar_list_defined = ["vbfgenMatched", "isCCLUBbjet", "isCCLUBvbfjet"]
        
     jetVar_list = jetVar_list_original + jetVar_list_defined
     
@@ -86,7 +86,7 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     # print("Eventos despues de GenJetSelection", df.Count().GetValue())
     df = HHBaseline.GenVBFJetSelection(df) # Jets from VBF quarks pt > 20 & eta < 4.7 & VBF quark matching from LHE particles (applied before overlap removal)
     # print("Eventos despues de GenVBFJetSelection", df.Count().GetValue())
-    df = HHBaseline.GenJetVBFOverlapRemoval(df) # Overlap removal between GenJets, GenTaus and GenVBFJets
+    df = HHBaseline.GenAllOverlapRemoval(df) # Overlap removal between GenJets, GenTaus and GenVBFJets
     # print("Eventos despues de GenJetVBFOverlapRemoval", df.Count().GetValue())
     df = HHBaseline.RequestOnlyResolvedGenJets(df) # Only resolved jets
     # print("Eventos despues de RequestOnlyResolvedGenJets", df.Count().GetValue())
@@ -118,9 +118,8 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = df.Define("X_mass", f"static_cast<int>({X_mass})")
     df = df.Define("node_index", f"static_cast<int>({node_index})")
 
-
-    df = HHBaseline.RecoJetSelection_CCLUB(df)
-    df = HHBaseline.GenRecoJetMatching_CCLUB(df)
+    df = HHBaseline.GenRecoTauMatching(df)
+    df = HHBaseline.GenJetMatchingForBjets(df)
 
     if apply_vbf_cuts:
         pT_threshold = 30.0
@@ -187,12 +186,8 @@ def createSkim(inFile, outFile, run, period, sample, X_mass, node_index, mpv, ve
     df = GenJetSavingCondition(df)
     # df = LHEPartSavingCondition(df)
 
-    n_MoreThanTwoMatches = df.Filter("Jet_idx[Jet_genMatched].size()>2").Count()
-
     report = df.Report()
     histReport=ReportTools.SaveReport(report.GetValue())
-    if(n_MoreThanTwoMatches.GetValue()!=0) :
-        raise RuntimeError('There are more than two jets matched! ')
 
     colToSave = ["event","luminosityBlock",
                 "HttCandidate_leg0_pt", "HttCandidate_leg0_eta", "HttCandidate_leg0_phi", "HttCandidate_leg0_mass", "HttCandidate_leg1_pt", "HttCandidate_leg1_eta", "HttCandidate_leg1_phi","HttCandidate_leg1_mass",

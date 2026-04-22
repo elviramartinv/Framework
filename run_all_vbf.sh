@@ -8,7 +8,7 @@ uts#!/bin/bash
 set -e  # Exit on error
 
 # Parse command line arguments
-VBF_CUTS=true
+VBF_CUTS=false
 TEST_MODE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -63,10 +63,10 @@ fi
 
 # Set output directory based on VBF cuts mode
 if [ "$VBF_CUTS" = true ]; then
-    OUTPUT_BASE="/eos/user/e/emartinv/vbfjets_Training/training_skims_highpurity_1310_all_VBFvars_v3"
+    OUTPUT_BASE="/eos/user/e/emartinv/vbfjets_Training/training_skims_highpurity_1310_all_v4"
     OUTPUT_SUFFIX="_highpurity"
 else
-    OUTPUT_BASE="/eos/user/e/emartinv/vbfjets_Training/training_skims_1310_all_VBFvars_v3"
+    OUTPUT_BASE="/eos/user/e/emartinv/vbfjets_Training/training_skims_1310_all_v7_0311"
     OUTPUT_SUFFIX=""
 fi
 
